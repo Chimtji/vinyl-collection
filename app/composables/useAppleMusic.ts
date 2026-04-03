@@ -83,10 +83,15 @@ export function useAppleMusic() {
   }
 
   async function searchAll(term: string): Promise<ItunesResult[]> {
-    const data = await $fetch<ItunesSearchResponse>('/api/itunes/search', {
-      query: { term, entity: 'song', limit: 30 },
-    })
-    return data.results || []
+    const [albumData, songData] = await Promise.all([
+      $fetch<ItunesSearchResponse>('/api/itunes/search', {
+        query: { term, entity: 'album', limit: 20 },
+      }),
+      $fetch<ItunesSearchResponse>('/api/itunes/search', {
+        query: { term, entity: 'song', limit: 20 },
+      }),
+    ])
+    return [...(albumData.results || []), ...(songData.results || [])]
   }
 
   async function getArtistAlbums(artistId: number): Promise<ItunesAlbum[]> {
