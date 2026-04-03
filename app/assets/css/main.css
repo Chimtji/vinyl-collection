@@ -1,0 +1,724 @@
+/* =========================================================
+   Vinyl Collection — Global Styles
+   ========================================================= */
+
+/* Base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--p-font-family, 'Inter', sans-serif);
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  min-height: 100vh;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* ── CSS Variables ─────────────────────────────────────── */
+:root {
+  --app-bg: #f8f7fc;
+  --app-bg-alt: #ede9f7;
+  --app-text: #1a1523;
+  --app-text-muted: #6b6480;
+  --app-surface: #ffffff;
+  --app-border: rgba(0, 0, 0, 0.08);
+  --app-shadow: 0 4px 24px rgba(109, 40, 217, 0.08);
+  --app-shadow-lg: 0 12px 48px rgba(109, 40, 217, 0.14);
+  --card-hover-transform: translateY(-4px);
+  --header-height: 64px;
+  --gradient-primary: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  --gradient-hero: linear-gradient(160deg, #0f0720 0%, #1e1040 50%, #0c1445 100%);
+}
+
+.dark-mode {
+  --app-bg: #0f0a1a;
+  --app-bg-alt: #160e28;
+  --app-text: #f0ecff;
+  --app-text-muted: #9d8ec9;
+  --app-surface: #1e1535;
+  --app-border: rgba(255, 255, 255, 0.08);
+  --app-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --app-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Layout ────────────────────────────────────────────── */
+.app-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.app-main {
+  min-height: calc(100vh - var(--header-height));
+  padding-top: 2rem;
+  padding-bottom: 4rem;
+}
+
+/* ── Header ────────────────────────────────────────────── */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: var(--header-height);
+  background-color: var(--app-surface);
+  border-bottom: 1px solid var(--app-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.app-header .app-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--app-text);
+}
+
+.app-logo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.app-logo-icon::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.app-logo-text {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.app-logo-text span {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Hero Section ──────────────────────────────────────── */
+.hero-section {
+  text-align: center;
+  padding: 5rem 1rem 3rem;
+  background: var(--gradient-hero);
+  border-radius: 1.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-section::after {
+  content: '';
+  position: absolute;
+  bottom: -80px;
+  left: -80px;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(124, 58, 237, 0.2);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  color: #c4b5fd;
+  padding: 0.35rem 1rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.hero-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 1rem;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.hero-title .gradient-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #818cf8 50%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 520px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.6;
+}
+
+/* ── Search ─────────────────────────────────────────────── */
+.search-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.search-input-group {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.search-input-group .p-inputtext {
+  flex: 1;
+  font-size: 1rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: 0.75rem !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
+  backdrop-filter: blur(8px);
+}
+
+.search-input-group .p-inputtext::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.search-input-group .p-inputtext:focus {
+  border-color: rgba(167, 139, 250, 0.6) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.25) !important;
+}
+
+/* ── Cards ──────────────────────────────────────────────── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.25rem;
+}
+
+.card-grid-lg {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.music-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+  box-shadow: var(--app-shadow);
+}
+
+.music-card:hover {
+  transform: var(--card-hover-transform);
+  box-shadow: var(--app-shadow-lg);
+  border-color: rgba(124, 58, 237, 0.3);
+}
+
+.music-card:active {
+  transform: translateY(-2px);
+}
+
+.card-artwork {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+  background: linear-gradient(135deg, #2d1b69, #1e3a8a);
+}
+
+.card-artwork-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #2d1b69, #1e3a8a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.card-body {
+  padding: 0.875rem 1rem;
+}
+
+.card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--app-text);
+  margin: 0 0 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-subtitle {
+  font-size: 0.8rem;
+  color: var(--app-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Artist Card ─────────────────────────────────────────── */
+.artist-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+  box-shadow: var(--app-shadow);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.artist-card:hover {
+  transform: var(--card-hover-transform);
+  box-shadow: var(--app-shadow-lg);
+  border-color: rgba(124, 58, 237, 0.3);
+}
+
+.artist-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.artist-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.artist-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.artist-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--app-text);
+  margin: 0 0 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.artist-genre {
+  font-size: 0.8rem;
+  color: var(--app-text-muted);
+  margin: 0;
+}
+
+/* ── Artist Detail ───────────────────────────────────────── */
+.artist-hero {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 2.5rem;
+  background: var(--gradient-hero);
+  border-radius: 1.5rem;
+  margin-bottom: 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.artist-hero-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.artist-hero-name {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: 800;
+  color: white;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.artist-hero-genre {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  margin: 0 0 1rem;
+}
+
+/* ── Album Detail ────────────────────────────────────────── */
+.album-hero {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 2rem;
+  padding: 2.5rem;
+  background: var(--gradient-hero);
+  border-radius: 1.5rem;
+  margin-bottom: 2.5rem;
+  align-items: start;
+}
+
+.album-cover {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 1rem;
+  object-fit: cover;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+}
+
+.album-cover-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #4c1d95, #1e3a8a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+}
+
+.album-meta {
+  padding-top: 0.5rem;
+}
+
+.album-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(124, 58, 237, 0.25);
+  border: 1px solid rgba(124, 58, 237, 0.4);
+  color: #c4b5fd;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+.album-title {
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 800;
+  color: white;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.album-artist-link {
+  color: #a78bfa;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+
+.album-artist-link:hover {
+  color: #c4b5fd;
+}
+
+.album-stats {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.album-stat {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.album-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ── Track List ──────────────────────────────────────────── */
+.track-list {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: var(--app-shadow);
+}
+
+.track-list-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--app-border);
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--app-text-muted);
+}
+
+.track-item {
+  padding: 0.85rem 1.5rem;
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  transition: background-color 0.15s ease;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.track-item:last-child {
+  border-bottom: none;
+}
+
+.track-item:hover {
+  background: rgba(124, 58, 237, 0.06);
+}
+
+.track-number {
+  font-size: 0.875rem;
+  color: var(--app-text-muted);
+  text-align: center;
+  font-weight: 500;
+}
+
+.track-info {
+  min-width: 0;
+}
+
+.track-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--app-text);
+  margin: 0 0 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-artist {
+  font-size: 0.8rem;
+  color: var(--app-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-duration {
+  font-size: 0.85rem;
+  color: var(--app-text-muted);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Section Titles ──────────────────────────────────────── */
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--app-text);
+  margin: 0 0 1.25rem;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-title .title-count {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--app-text-muted);
+  background: var(--app-bg-alt);
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+}
+
+/* ── Empty / Loading States ──────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--app-text-muted);
+}
+
+.empty-state-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.4;
+}
+
+.empty-state-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: var(--app-text);
+}
+
+.empty-state-text {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ── Tabs Override ───────────────────────────────────────── */
+.search-tabs .p-tablist {
+  border-bottom: 2px solid var(--app-border);
+  gap: 0;
+}
+
+/* ── Discogs Badge ───────────────────────────────────────── */
+.discogs-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #333333, #1a1a1a);
+  color: #ffcf00;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.discogs-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Skeleton / Pulse ────────────────────────────────────── */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.skeleton-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+  background: var(--app-bg-alt);
+  border-radius: 0.5rem;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .album-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .album-cover,
+  .album-cover-placeholder {
+    max-width: 200px;
+    margin: 0 auto;
+  }
+
+  .artist-hero {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .app-logo-text {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-grid,
+  .card-grid-lg {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
