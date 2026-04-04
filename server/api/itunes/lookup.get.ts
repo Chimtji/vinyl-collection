@@ -9,7 +9,9 @@ export default defineEventHandler(async (event) => {
   const url = `https://itunes.apple.com/lookup?id=${encodeURIComponent(String(id))}&entity=${entity}&limit=${limit}`
 
   try {
-    const data = await $fetch<Record<string, unknown>>(url)
+    const response = await $fetch<string>(url)
+    const data = typeof response === 'string' ? JSON.parse(response) : response
+
     return data
   } catch {
     throw createError({ statusCode: 502, message: 'Failed to reach iTunes API' })

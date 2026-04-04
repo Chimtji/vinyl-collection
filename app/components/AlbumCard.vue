@@ -12,11 +12,20 @@ const emit = defineEmits<{
 const { getArtworkUrl, formatReleaseYear } = useAppleMusic()
 
 const artworkUrl = computed(() => getArtworkUrl(props.album.artworkUrl100, 400))
-const year = computed(() => formatReleaseYear(props.album.releaseDate))
+const year = computed(() => {
+  const y = formatReleaseYear(props.album.releaseDate)
+  return y === '0' ? '' : y
+})
 </script>
 
 <template>
-  <div class="music-card" role="button" tabindex="0" @click="emit('click', album)" @keyup.enter="emit('click', album)">
+  <div
+    class="music-card"
+    role="button"
+    tabindex="0"
+    @click="emit('click', album)"
+    @keyup.enter="emit('click', album)"
+  >
     <img
       v-if="artworkUrl"
       :src="artworkUrl"
@@ -29,7 +38,7 @@ const year = computed(() => formatReleaseYear(props.album.releaseDate))
     </div>
     <div class="card-body">
       <p class="card-title">{{ album.collectionName }}</p>
-      <p class="card-subtitle">{{ year }} · {{ album.trackCount }} tracks</p>
+      <p class="card-subtitle">{{ year ? year + ' · ' : '' }}{{ album.trackCount }} tracks</p>
     </div>
   </div>
 </template>

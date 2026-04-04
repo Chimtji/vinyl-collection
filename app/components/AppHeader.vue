@@ -25,17 +25,12 @@ function toggleDark() {
         <span class="app-logo-text">Vinyl<span>Collection</span></span>
       </NuxtLink>
 
-      <div style="display: flex; align-items: center; gap: 0.75rem">
-        <NuxtLink to="/">
-          <Button
-            text
-            rounded
-            icon="pi pi-search"
-            aria-label="Search"
-            size="small"
-            style="color: var(--app-text-muted)"
-          />
-        </NuxtLink>
+      <nav style="display: flex; align-items: center; gap: 0.5rem">
+        <NuxtLink to="/" class="header-nav-link">Collection</NuxtLink>
+        <NuxtLink to="/search" class="header-nav-link">Search</NuxtLink>
+        <NuxtLink to="/collection" class="header-nav-link">Manage</NuxtLink>
+      </nav>
+      <div style="display: flex; align-items: center; gap: 0.5rem">
         <Button
           text
           rounded

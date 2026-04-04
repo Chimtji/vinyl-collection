@@ -1,0 +1,132 @@
+<script setup lang="ts">
+const route = useRoute()
+const router = useRouter()
+const { albums, genres } = useCollection()
+const { items: wishlistItems, fetchWishlist } = useWishlist()
+
+const isDark = ref(false)
+
+onMounted(() => {
+  isDark.value = document.documentElement.classList.contains('dark-mode')
+  fetchWishlist()
+})
+
+function toggleDark() {
+  isDark.value = !isDark.value
+  document.documentElement.classList.toggle('dark-mode', isDark.value)
+}
+
+type NavItem =
+  | { type: 'link'; id: string; label: string; icon: string; to: string; badge?: () => number }
+  | { type: 'section'; label: string }
+
+const navItems: NavItem[] = [
+  { type: 'link', id: 'dashboard', label: 'Dashboard', icon: 'pi pi-home', to: '/' },
+  { type: 'link', id: 'search', label: 'Search', icon: 'pi pi-search', to: '/search' },
+  { type: 'section', label: 'Collection' },
+  {
+    type: 'link',
+    id: 'genres',
+    label: 'Genres',
+    icon: 'pi pi-tag',
+    to: '/collection?view=genres',
+    badge: () => genres.value.length,
+  },
+  {
+    type: 'link',
+    id: 'albums',
+    label: 'Albums',
+    icon: 'pi pi-th-large',
+    to: '/collection?view=albums',
+    badge: () => albums.value.length,
+  },
+  {
+    type: 'link',
+    id: 'artists',
+    label: 'Artists',
+    icon: 'pi pi-user',
+    to: '/collection?view=artists',
+    badge: () => new Set(albums.value.map((a) => a.artist)).size,
+  },
+  { type: 'section', label: 'Wishlist' },
+  {
+    type: 'link',
+    id: 'wishlist',
+    label: 'Wishlist',
+    icon: 'pi pi-heart',
+    to: '/wishlist',
+    badge: () => wishlistItems.value.length,
+  },
+]
+
+function isActive(item: Extract<NavItem, { type: 'link' }>) {
+  if (item.id === 'dashboard') return route.path === '/'
+  if (item.id === 'search') return route.path === '/search'
+  if (item.id === 'genres')
+    return route.path === '/collection' && (!route.query.view || route.query.view === 'genres')
+  if (item.id === 'albums') return route.path === '/collection' && route.query.view === 'albums'
+  if (item.id === 'artists') return route.path === '/collection' && route.query.view === 'artists'
+  if (item.id === 'wishlist') return route.path.startsWith('/wishlist')
+  return false
+}
+
+function openImport() {
+  router.push('/collection?action=import')
+}
+</script>
+
+<template>
+  <aside class="app-sidebar">
+    <!-- Logo -->
+    <div class="app-sidebar-logo">
+      <div class="app-logo-icon">
+        <i class="pi pi-disc" />
+      </div>
+      <div>
+        <p class="app-sidebar-logo-text">Vinyl<span>Collection</span></p>
+        <p class="app-sidebar-logo-sub">
+          {{ albums.length }} {{ albums.length === 1 ? 'album' : 'albums' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="app-sidebar-nav">
+      <template v-for="item in navItems" :key="item.type === 'link' ? item.id : item.label">
+        <p v-if="item.type === 'section'" class="app-sidebar-section">{{ item.label }}</p>
+        <NuxtLink v-else :to="item.to" class="sidebar-nav-item" :class="{ active: isActive(item) }">
+          <i :class="item.icon" class="sidebar-nav-icon" />
+          {{ item.label }}
+          <span v-if="item.badge && item.badge() > 0" class="sidebar-nav-badge">{{
+            item.badge()
+          }}</span>
+        </NuxtLink>
+      </template>
+    </nav>
+
+    <!-- Footer actions -->
+    <div class="app-sidebar-footer">
+      <NuxtLink to="/search" style="display: block; margin-bottom: 0.5rem">
+        <Button icon="pi pi-plus" label="Add Album" class="w-full" size="small" />
+      </NuxtLink>
+      <Button
+        icon="pi pi-download"
+        label="Import from Discogs"
+        class="w-full"
+        size="small"
+        outlined
+        style="margin-bottom: 0.75rem"
+        @click="openImport"
+      />
+      <Button
+        text
+        rounded
+        :icon="isDark ? 'pi pi-sun' : 'pi pi-moon'"
+        :aria-label="isDark ? 'Light mode' : 'Dark mode'"
+        size="small"
+        style="color: var(--app-text-muted); width: 100%"
+        @click="toggleDark"
+      />
+    </div>
+  </aside>
+</template>

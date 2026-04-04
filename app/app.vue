@@ -1,11 +1,12 @@
 <template>
-  <div>
+  <div class="app-layout">
     <NuxtRouteAnnouncer />
-    <AppHeader />
-    <main class="app-main">
-      <div class="app-container">
+    <AppSidebar />
+    <main class="app-content">
+      <div class="app-content-inner">
         <NuxtPage />
       </div>
     </main>
+    <ApiDevTools />
   </div>
 </template>

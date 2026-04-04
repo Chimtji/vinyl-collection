@@ -77,9 +77,10 @@ export function useAppleMusic() {
     const data = await $fetch<ItunesSearchResponse>('/api/itunes/search', {
       query: { term, entity: 'musicArtist', limit: 20 },
     })
-    return (data.results || []).filter(
+    const artists = (data.results || []).filter(
       (r): r is ItunesArtist => (r as ItunesArtist).wrapperType === 'artist',
     )
+    return artists
   }
 
   async function searchAll(term: string): Promise<ItunesResult[]> {
@@ -91,7 +92,8 @@ export function useAppleMusic() {
         query: { term, entity: 'song', limit: 20 },
       }),
     ])
-    return [...(albumData.results || []), ...(songData.results || [])]
+    const allResults = [...(albumData.results || []), ...(songData.results || [])]
+    return allResults
   }
 
   async function getArtistAlbums(artistId: number): Promise<ItunesAlbum[]> {
@@ -103,12 +105,15 @@ export function useAppleMusic() {
     )
   }
 
-  async function getAlbumTracks(albumId: number): Promise<{ album: ItunesAlbum | null; tracks: ItunesTrack[] }> {
+  async function getAlbumTracks(
+    albumId: number,
+  ): Promise<{ album: ItunesAlbum | null; tracks: ItunesTrack[] }> {
     const data = await $fetch<ItunesSearchResponse>('/api/itunes/lookup', {
       query: { id: albumId, entity: 'song', limit: 100 },
     })
     const results = data.results || []
-    const album = (results.find((r) => (r as ItunesAlbum).wrapperType === 'collection') as ItunesAlbum) ?? null
+    const album =
+      (results.find((r) => (r as ItunesAlbum).wrapperType === 'collection') as ItunesAlbum) ?? null
     const tracks = results.filter(
       (r): r is ItunesTrack => (r as ItunesTrack).wrapperType === 'track',
     )
@@ -130,7 +135,8 @@ export function useAppleMusic() {
 
   function formatReleaseYear(dateStr: string): string {
     if (!dateStr) return ''
-    return new Date(dateStr).getFullYear().toString()
+    const year = new Date(dateStr).getFullYear()
+    return year && year > 0 ? year.toString() : ''
   }
 
   return {

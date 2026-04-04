@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { DiscogsRelease } from '~/composables/useDiscogs'
-import type { CollectionAlbum } from '~/composables/useCollection'
 
 definePageMeta({ ssr: false })
 
@@ -8,76 +7,58 @@ const route = useRoute()
 const router = useRouter()
 const { getAlbumTracks, getArtworkUrl, formatReleaseYear } = useAppleMusic()
 const { searchRelease, getDiscogsUrl } = useDiscogs()
-const { deleteAlbum } = useCollection()
+const { addAlbum, albums, fetchCollection } = useCollection()
+const { addToWishlist, removeFromWishlist, getWishlistItem, fetchWishlist } = useWishlist()
 
-const localId = route.params.id as string
+const itunesId = Number(route.params.id)
 
-// 1. Fetch the local album record first
-const { data: localAlbum, error: localError } = await useFetch<CollectionAlbum>(
-  `/api/collection/${localId}`,
-)
+useSeoMeta({ title: 'Album — Vinyl Collection' })
 
-useSeoMeta({
-  title: () => `${localAlbum.value?.title ?? 'Album'} — Vinyl Collection`,
-})
-
-// 2. If we have an iTunes collection ID, fetch full metadata + tracks
-const itunesId = computed(() => localAlbum.value?.itunesCollectionId ?? null)
-
+// Fetch album + tracks directly from iTunes
 const { data: itunesData, status: itunesStatus } = await useAsyncData(
-  `itunes-${localId}`,
-  () => (itunesId.value ? getAlbumTracks(itunesId.value) : Promise.resolve(null)),
-  { watch: [itunesId] },
+  `itunes-preview-${itunesId}`,
+  () => getAlbumTracks(itunesId),
 )
 
-const itunesLoading = computed(() => itunesStatus.value === 'pending')
+const loading = computed(() => itunesStatus.value === 'pending')
 const itunesAlbum = computed(() => itunesData.value?.album ?? null)
 const tracks = computed(() => itunesData.value?.tracks ?? [])
 
-// Display values: prefer iTunes enriched data, fall back to local record
-const displayTitle = computed(
-  () => itunesAlbum.value?.collectionName ?? localAlbum.value?.title ?? '',
+useSeoMeta({ title: () => `${itunesAlbum.value?.collectionName ?? 'Album'} — Vinyl Collection` })
+
+const displayTitle = computed(() => itunesAlbum.value?.collectionName ?? '')
+const displayArtist = computed(() => itunesAlbum.value?.artistName ?? '')
+const displayYear = computed(() =>
+  itunesAlbum.value ? formatReleaseYear(itunesAlbum.value.releaseDate) : '',
 )
-const displayArtist = computed(
-  () => itunesAlbum.value?.artistName ?? localAlbum.value?.artist ?? '',
-)
-const displayYear = computed(() => {
-  if (itunesAlbum.value) return formatReleaseYear(itunesAlbum.value.releaseDate)
-  const y = localAlbum.value?.year
-  return y && y !== 0 ? String(y) : ''
-})
-const displayGenre = computed(
-  () => itunesAlbum.value?.primaryGenreName ?? localAlbum.value?.genre ?? '',
-)
+const displayGenre = computed(() => itunesAlbum.value?.primaryGenreName ?? '')
 const displayArtistId = computed(() => itunesAlbum.value?.artistId ?? null)
+const artworkUrl = computed(() =>
+  itunesAlbum.value?.artworkUrl100 ? getArtworkUrl(itunesAlbum.value.artworkUrl100, 500) : '',
+)
 
-const artworkUrl = computed(() => {
-  if (itunesAlbum.value?.artworkUrl100) return getArtworkUrl(itunesAlbum.value.artworkUrl100, 500)
-  if (localAlbum.value?.artworkUrl) return localAlbum.value.artworkUrl
-  return ''
-})
-
-// 3. Load Discogs + Wikipedia in parallel
+// Load Discogs + Wikipedia in parallel after album loads
 const discogsRelease = ref<DiscogsRelease | null>(null)
 const discogsLoading = ref(false)
 const wikiSummary = ref<{ title: string; extract: string; url: string } | null>(null)
 
-onMounted(async () => {
-  if (!localAlbum.value) return
-  const artist = displayArtist.value || localAlbum.value.artist
-  const title = displayTitle.value || localAlbum.value.title
-
-  discogsLoading.value = true
-  const [discogsResult, wikiResult] = await Promise.all([
-    searchRelease(artist, title).catch(() => null),
-    $fetch<{ title: string; extract: string; url: string } | null>(
-      `/api/wikipedia/summary?artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(title)}`,
-    ).catch(() => null),
-  ])
-  discogsRelease.value = discogsResult
-  wikiSummary.value = wikiResult
-  discogsLoading.value = false
-})
+watch(
+  itunesAlbum,
+  async (album) => {
+    if (!album) return
+    discogsLoading.value = true
+    const [discogsResult, wikiResult] = await Promise.all([
+      searchRelease(album.artistName, album.collectionName).catch(() => null),
+      $fetch<{ title: string; extract: string; url: string } | null>(
+        `/api/wikipedia/summary?artist=${encodeURIComponent(album.artistName)}&album=${encodeURIComponent(album.collectionName)}`,
+      ).catch(() => null),
+    ])
+    discogsRelease.value = discogsResult
+    wikiSummary.value = wikiResult
+    discogsLoading.value = false
+  },
+  { immediate: true },
+)
 
 const discogsUrl = computed(() =>
   discogsRelease.value ? getDiscogsUrl(discogsRelease.value) : null,
@@ -128,22 +109,61 @@ function openAppleMusic() {
   }
 }
 
-const confirmRemove = ref(false)
-const removing = ref(false)
+onMounted(() => fetchCollection())
+onMounted(() => fetchWishlist())
 
-async function removeFromCollection() {
-  removing.value = true
+const inCollection = computed(
+  () => albums.value.find((a) => a.itunesCollectionId === itunesId) ?? null,
+)
+
+const adding = ref(false)
+
+const wishlisted = computed(() => getWishlistItem(itunesId) ?? null)
+const wishlistPending = ref(false)
+
+async function toggleWishlist() {
+  if (!itunesAlbum.value) return
+  wishlistPending.value = true
   try {
-    await deleteAlbum(localId)
-    // Stay on the same album — switch to iTunes preview if available, otherwise go back
-    if (itunesId.value) {
-      router.replace(`/album/itunes/${itunesId.value}`)
+    if (wishlisted.value) {
+      await removeFromWishlist(wishlisted.value.id)
     } else {
-      router.back()
+      const album = itunesAlbum.value
+      await addToWishlist({
+        itunesCollectionId: album.collectionId,
+        title: album.collectionName,
+        artist: album.artistName,
+        genre: album.primaryGenreName || 'Other',
+        year: album.releaseDate ? new Date(album.releaseDate).getFullYear() : 0,
+        artworkUrl: getArtworkUrl(album.artworkUrl100, 500),
+        trackCount: album.trackCount,
+        priority: 'medium',
+      })
     }
   } finally {
-    removing.value = false
-    confirmRemove.value = false
+    wishlistPending.value = false
+  }
+}
+
+async function addToCollection() {
+  if (!itunesAlbum.value) return
+  adding.value = true
+  try {
+    const album = itunesAlbum.value
+    const newAlbum = await addAlbum({
+      title: album.collectionName,
+      artist: album.artistName,
+      genre: album.primaryGenreName || 'Other',
+      year: album.releaseDate
+        ? new Date(album.releaseDate).getFullYear()
+        : new Date().getFullYear(),
+      artworkUrl: getArtworkUrl(album.artworkUrl100, 500),
+      itunesCollectionId: album.collectionId,
+      trackCount: album.trackCount,
+    })
+    router.push(`/album/${newAlbum.id}`)
+  } finally {
+    adding.value = false
   }
 }
 </script>
@@ -155,13 +175,18 @@ async function removeFromCollection() {
       <Button text icon="pi pi-arrow-left" label="Back" @click="router.back()" />
     </div>
 
-    <!-- Album not found -->
-    <div v-if="localError" class="empty-state">
+    <!-- Loading -->
+    <div v-if="loading" style="text-align: center; padding: 4rem">
+      <ProgressSpinner stroke-width="3" style="width: 48px; height: 48px" />
+    </div>
+
+    <!-- Not found -->
+    <div v-else-if="!itunesAlbum" class="empty-state">
       <div class="empty-state-icon"><i class="pi pi-exclamation-triangle" /></div>
       <p class="empty-state-title">Album not found</p>
     </div>
 
-    <template v-else-if="localAlbum">
+    <template v-else>
       <!-- Album Hero -->
       <div class="album-hero">
         <!-- Artwork -->
@@ -185,16 +210,48 @@ async function removeFromCollection() {
           >
             <div class="album-type-badge" style="margin-bottom: 0">
               <i class="pi pi-disc" />
-              Album
+              {{ itunesAlbum.collectionType || 'Album' }}
             </div>
+
+            <!-- Wishlist button (only when not in collection) -->
             <button
+              v-if="!inCollection"
               class="album-type-badge collection-action-badge"
+              :class="wishlisted ? 'wishlist-badge--active' : 'wishlist-badge--inactive'"
               style="margin-bottom: 0"
-              @click="confirmRemove = true"
+              :disabled="wishlistPending"
+              @click="toggleWishlist"
             >
-              <span class="cab-default"><i class="pi pi-check" /> In my collection</span>
-              <span class="cab-hover"><i class="pi pi-minus-circle" /> Remove</span>
+              <i
+                class="pi"
+                :class="
+                  wishlistPending ? 'pi-spin pi-spinner' : wishlisted ? 'pi-heart-fill' : 'pi-heart'
+                "
+              />
+              {{ wishlisted ? 'Wishlisted' : 'Add to wishlist' }}
             </button>
+
+            <!-- Add / In collection — combined badge button -->
+            <button
+              v-if="!inCollection"
+              class="album-type-badge collection-action-badge collection-action-badge--add"
+              style="margin-bottom: 0"
+              :disabled="adding"
+              @click="addToCollection"
+            >
+              <i class="pi" :class="adding ? 'pi-spin pi-spinner' : 'pi-plus'" />
+              {{ adding ? 'Adding…' : 'Add to collection' }}
+            </button>
+            <NuxtLink
+              v-else
+              :to="`/album/${inCollection.id}`"
+              style="text-decoration: none; margin-bottom: 0"
+            >
+              <button class="album-type-badge collection-action-badge" style="margin-bottom: 0">
+                <span class="cab-default"><i class="pi pi-check" /> In my collection</span>
+                <span class="cab-hover"><i class="pi pi-arrow-right" /> Go to album</span>
+              </button>
+            </NuxtLink>
           </div>
 
           <h1 class="album-title">{{ displayTitle }}</h1>
@@ -206,9 +263,7 @@ async function removeFromCollection() {
           >
             {{ displayArtist }}
           </NuxtLink>
-          <span v-else class="album-artist-link" style="cursor: default">
-            {{ displayArtist }}
-          </span>
+          <span v-else class="album-artist-link" style="cursor: default">{{ displayArtist }}</span>
 
           <div class="album-stats">
             <span v-if="displayYear" class="album-stat">
@@ -223,7 +278,7 @@ async function removeFromCollection() {
               <i class="pi pi-tag" />
               {{ displayGenre }}
             </span>
-            <span v-if="itunesAlbum?.country" class="album-stat">
+            <span v-if="itunesAlbum.country" class="album-stat">
               <i class="pi pi-globe" />
               {{ itunesAlbum.country }}
             </span>
@@ -235,7 +290,7 @@ async function removeFromCollection() {
               icon="pi pi-apple"
               label="Apple Music"
               size="small"
-              :disabled="!itunesAlbum?.collectionViewUrl"
+              :disabled="!itunesAlbum.collectionViewUrl"
               @click="openAppleMusic"
             />
 
@@ -328,68 +383,33 @@ async function removeFromCollection() {
         </div>
       </div>
 
-      <!-- iTunes loading -->
-      <div v-if="itunesLoading" style="text-align: center; padding: 2rem">
-        <ProgressSpinner stroke-width="3" style="width: 36px; height: 36px" />
+      <!-- Track List -->
+      <div v-if="tracks.length > 0">
+        <h2 class="section-title">
+          <i class="pi pi-list" style="color: var(--p-primary-500)" />
+          Tracks
+          <span class="title-count">{{ tracks.length }}</span>
+        </h2>
+        <TrackList :tracks="tracks" />
       </div>
 
-      <template v-else>
-        <!-- Track List -->
-        <div v-if="tracks.length > 0">
-          <h2 class="section-title">
-            <i class="pi pi-list" style="color: var(--p-primary-500)" />
-            Tracks
-            <span class="title-count">{{ tracks.length }}</span>
-          </h2>
-          <TrackList :tracks="tracks" />
-        </div>
-        <div v-else-if="!itunesId" class="empty-state" style="padding: 2rem 0">
-          <div class="empty-state-icon" style="font-size: 2rem"><i class="pi pi-music" /></div>
-          <p class="empty-state-title">No track data available</p>
-          <p class="empty-state-text" style="max-width: 320px">
-            This album wasn’t matched to iTunes. Search for it to link track data.
-          </p>
-        </div>
-
-        <!-- Wikipedia summary -->
-        <div v-if="wikiSummary" class="album-wiki">
-          <h2 class="section-title">
-            <i class="pi pi-book" style="color: var(--p-primary-500)" />
-            About
-          </h2>
-          <p class="album-wiki-text">{{ wikiSummary.extract }}</p>
-          <a
-            :href="wikiSummary.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="album-wiki-link"
-          >
-            Read more on Wikipedia
-            <i class="pi pi-external-link" style="font-size: 0.7rem" />
-          </a>
-        </div>
-      </template>
+      <!-- Wikipedia summary -->
+      <div v-if="wikiSummary" class="album-wiki">
+        <h2 class="section-title">
+          <i class="pi pi-book" style="color: var(--p-primary-500)" />
+          About
+        </h2>
+        <p class="album-wiki-text">{{ wikiSummary.extract }}</p>
+        <a
+          :href="wikiSummary.url"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="album-wiki-link"
+        >
+          Read more on Wikipedia
+          <i class="pi pi-external-link" style="font-size: 0.7rem" />
+        </a>
+      </div>
     </template>
-
-    <!-- Remove from collection confirm -->
-    <Dialog
-      v-model:visible="confirmRemove"
-      header="Remove from collection"
-      modal
-      :style="{ width: '360px' }"
-    >
-      <p style="margin: 0">
-        Remove <strong>{{ displayTitle }}</strong> from your collection?
-      </p>
-      <template #footer>
-        <Button label="Cancel" text @click="confirmRemove = false" />
-        <Button
-          label="Remove"
-          severity="danger"
-          :loading="removing"
-          @click="removeFromCollection"
-        />
-      </template>
-    </Dialog>
   </div>
 </template>
