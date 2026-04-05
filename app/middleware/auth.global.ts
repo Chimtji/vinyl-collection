@@ -1,13 +1,18 @@
 /**
  * Synchronous auth route guard.
- * The plugin sets ready=true immediately so user always starts logged out.
- * This guard only needs to check isLoggedIn — no async waiting required.
+ *
+ * While Identity is initialising (ready=false) all navigations are allowed
+ * through — the splash overlay in app.vue covers the page. Once ready, the
+ * normal logged-in/logged-out rules apply for every navigation.
  */
 export default defineNuxtRouteMiddleware((to) => {
   if (import.meta.dev) return
   if (import.meta.server) return
 
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, ready } = useAuth()
+
+  // Not yet initialised — splash is covering the screen, let it through.
+  if (!ready.value) return
 
   if (to.path === '/login') {
     if (isLoggedIn.value) return navigateTo('/')

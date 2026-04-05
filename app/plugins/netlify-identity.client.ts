@@ -26,10 +26,27 @@ export default defineNuxtPlugin(() => {
     }
   }
 
-  // Unblock the app immediately — user always starts on the login screen.
-  // We do NOT restore cached sessions; an explicit login is always required.
-  ready.value = true
+  // Safety valve: if on('init') never fires (network issue) unblock after 8 s.
+  const initTimeout = setTimeout(() => {
+    if (!ready.value) {
+      user.value = null
+      ready.value = true
+    }
+  }, 8000)
 
+  // on('init') fires once the widget has checked localStorage for a stored
+  // session. We ONLY set state here — app.vue's watch(ready) handles routing.
+  netlifyIdentity.on('init', (u) => {
+    clearTimeout(initTimeout)
+    user.value = (u as AuthUser) ?? null
+    if (u) {
+      netlifyIdentity.close()
+      runMigration()
+    }
+    ready.value = true // this triggers the watch in app.vue
+  })
+
+  // Explicit widget login — navigate to home after state is set.
   netlifyIdentity.on('login', (u) => {
     user.value = u as AuthUser
     netlifyIdentity.close()
