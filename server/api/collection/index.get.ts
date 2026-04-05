@@ -1,6 +1,7 @@
 export default defineEventHandler(async (event) => {
+  const userId = requireUserId(event)
   setResponseHeaders(event, {
     'Cache-Control': 'no-store',
   })
-  return readCollection()
+  return readCollection(userId)
 })

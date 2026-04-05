@@ -3,6 +3,19 @@ const route = useRoute()
 const router = useRouter()
 const { albums, genres } = useCollection()
 const { items: wishlistItems, fetchWishlist } = useWishlist()
+const { user, isLoggedIn, logout } = useAuth()
+
+const userInitials = computed(() => {
+  const name = user.value?.user_metadata?.full_name ?? user.value?.email ?? '?'
+  return name
+    .split(/[\s@.]+/)
+    .slice(0, 2)
+    .map((p: string) => p[0]?.toUpperCase() ?? '')
+    .join('')
+})
+const displayName = computed(
+  () => user.value?.user_metadata?.full_name ?? user.value?.email ?? 'Konto',
+)
 
 onMounted(() => {
   fetchWishlist()
@@ -69,17 +82,23 @@ function openImport() {
 
 <template>
   <aside class="app-sidebar">
-    <!-- Logo -->
+    <!-- Logo / User -->
     <div class="app-sidebar-logo">
-      <div class="app-logo-icon">
-        <i class="pi pi-disc" />
-      </div>
-      <div>
-        <p class="app-sidebar-logo-text">Vinyl<span>Collection</span></p>
-        <p class="app-sidebar-logo-sub">
-          {{ albums.length }} {{ albums.length === 1 ? 'album' : 'albums' }}
-        </p>
-      </div>
+      <NuxtLink
+        to="/account"
+        class="sidebar-logo-link"
+        :class="{ active: route.path === '/account' }"
+      >
+        <div class="app-logo-icon sidebar-avatar">
+          {{ userInitials }}
+        </div>
+        <div>
+          <p class="app-sidebar-logo-text">{{ displayName }}</p>
+          <p class="app-sidebar-logo-sub">
+            {{ albums.length }} {{ albums.length === 1 ? 'album' : 'albums' }}
+          </p>
+        </div>
+      </NuxtLink>
     </div>
 
     <!-- Nav -->
@@ -123,3 +142,61 @@ function openImport() {
     </div>
   </aside>
 </template>
+
+<style scoped>
+.sidebar-avatar {
+  background: rgba(196, 85, 41, 0.12);
+  color: #c45529;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dark-mode .sidebar-avatar {
+  background: rgba(232, 132, 90, 0.15);
+  color: #e8845a;
+}
+
+/* Override global padding — the link handles its own inset */
+.app-sidebar-logo {
+  padding: 0.5rem 0.75rem;
+}
+
+.sidebar-logo-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sidebar-logo-link:hover {
+  background: var(--app-bg-alt);
+}
+
+.sidebar-logo-link.active {
+  background: rgba(196, 85, 41, 0.1);
+}
+
+.dark-mode .sidebar-logo-link.active {
+  background: rgba(232, 132, 90, 0.12);
+}
+
+.sidebar-logo-link.active .app-sidebar-logo-text {
+  color: #c45529;
+}
+
+.dark-mode .sidebar-logo-link.active .app-sidebar-logo-text {
+  color: #e8845a;
+}
+</style>

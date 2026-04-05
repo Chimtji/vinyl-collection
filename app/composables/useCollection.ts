@@ -31,6 +31,7 @@ export function slugToGenre(collection: CollectionAlbum[], slug: string): string
 export function useCollection() {
   const albums = useState<CollectionAlbum[]>('collection', () => [])
   const loading = ref(false)
+  const { authHeaders } = useAuth()
 
   const genres = computed<GenreGroup[]>(() => {
     const map = new Map<string, CollectionAlbum[]>()
@@ -51,7 +52,7 @@ export function useCollection() {
   async function fetchCollection() {
     loading.value = true
     try {
-      const data = await $fetch<CollectionAlbum[]>('/api/collection')
+      const data = await $fetch<CollectionAlbum[]>('/api/collection', { headers: authHeaders() })
       albums.value = data
       return data
     } finally {
@@ -63,6 +64,7 @@ export function useCollection() {
     const album = await $fetch<CollectionAlbum>('/api/collection', {
       method: 'POST',
       body: data,
+      headers: authHeaders(),
     })
     albums.value = [...albums.value, album]
     return album
@@ -72,13 +74,14 @@ export function useCollection() {
     const updated = await $fetch<CollectionAlbum>(`/api/collection/${id}`, {
       method: 'PUT',
       body: data,
+      headers: authHeaders(),
     })
     albums.value = albums.value.map((a) => (a.id === id ? updated : a))
     return updated
   }
 
   async function deleteAlbum(id: string) {
-    await $fetch(`/api/collection/${id}`, { method: 'DELETE' })
+    await $fetch(`/api/collection/${id}`, { method: 'DELETE', headers: authHeaders() })
     albums.value = albums.value.filter((a) => a.id !== id)
   }
 

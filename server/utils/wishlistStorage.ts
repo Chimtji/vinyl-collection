@@ -17,37 +17,56 @@ export interface WishlistItem {
 }
 
 const STORE_NAME = 'vinyl-collection'
-const WISHLIST_KEY = 'wishlist'
-
-const DATA_DIR = join(process.cwd(), 'data')
-const DATA_FILE = join(DATA_DIR, 'wishlist.json')
 
 function onNetlify() {
   return process.env.NETLIFY === 'true' || !!process.env.NETLIFY_BLOBS_CONTEXT
 }
 
-export async function readWishlist(): Promise<WishlistItem[]> {
+function wishlistKey(userId: string) {
+  return `users/${userId}/wishlist`
+}
+
+function localDataFile(userId: string) {
+  const dir = join(process.cwd(), 'data', userId)
+  return { dir, file: join(dir, 'wishlist.json') }
+}
+
+const LEGACY_DATA_FILE = join(process.cwd(), 'data', 'wishlist.json')
+
+export async function readWishlist(userId: string): Promise<WishlistItem[]> {
   if (onNetlify()) {
     try {
       const store = getStore({ name: STORE_NAME, consistency: 'strong' })
-      const data = await store.get(WISHLIST_KEY, { type: 'json' })
+      const data = await store.get(wishlistKey(userId), { type: 'json' })
       return (data as WishlistItem[]) ?? []
     } catch {
       return []
     }
   }
-  if (!existsSync(DATA_FILE)) return []
+  const { dir, file } = localDataFile(userId)
+  // Auto-migrate legacy flat file on first run
+  if (!existsSync(file) && existsSync(LEGACY_DATA_FILE)) {
+    try {
+      const legacy = JSON.parse(readFileSync(LEGACY_DATA_FILE, 'utf-8')) as WishlistItem[]
+      if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
+      writeFileSync(file, JSON.stringify(legacy, null, 2), 'utf-8')
+      return legacy
+    } catch {
+      return []
+    }
+  }
+  if (!existsSync(file)) return []
   try {
-    return JSON.parse(readFileSync(DATA_FILE, 'utf-8')) as WishlistItem[]
+    return JSON.parse(readFileSync(file, 'utf-8')) as WishlistItem[]
   } catch {
     return []
   }
 }
 
-export async function writeWishlist(items: WishlistItem[]): Promise<void> {
+export async function writeWishlist(userId: string, items: WishlistItem[]): Promise<void> {
   if (onNetlify()) {
     const store = getStore(STORE_NAME)
-    await store.set(WISHLIST_KEY, JSON.stringify(items))
+    await store.set(wishlistKey(userId), JSON.stringify(items))
     return
   }
   if (process.env.NETLIFY === 'true') {
@@ -55,6 +74,7 @@ export async function writeWishlist(items: WishlistItem[]): Promise<void> {
     // attempting a write on the read-only Netlify filesystem
     throw new Error('Netlify Blobs context unavailable; cannot persist data')
   }
-  if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true })
-  writeFileSync(DATA_FILE, JSON.stringify(items, null, 2), 'utf-8')
+  const { dir, file } = localDataFile(userId)
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
+  writeFileSync(file, JSON.stringify(items, null, 2), 'utf-8')
 }

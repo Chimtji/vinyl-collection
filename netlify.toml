@@ -4,3 +4,8 @@
 
 [build.environment]
   NODE_VERSION = "20"
+
+# ── Netlify Identity ─────────────────────────────────────────────────────────
+# Enable Identity for this site in the Netlify dashboard:
+#   Site configuration → Identity → Enable Identity
+# That's the only step required — no toml config needed.

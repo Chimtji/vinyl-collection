@@ -15,11 +15,12 @@ export interface WishlistItem {
 export function useWishlist() {
   const items = useState<WishlistItem[]>('wishlist', () => [])
   const loading = ref(false)
+  const { authHeaders } = useAuth()
 
   async function fetchWishlist() {
     loading.value = true
     try {
-      const data = await $fetch<WishlistItem[]>('/api/wishlist')
+      const data = await $fetch<WishlistItem[]>('/api/wishlist', { headers: authHeaders() })
       items.value = data
       return data
     } finally {
@@ -31,6 +32,7 @@ export function useWishlist() {
     const item = await $fetch<WishlistItem>('/api/wishlist', {
       method: 'POST',
       body: data,
+      headers: authHeaders(),
     })
     items.value = [...items.value, item]
     return item
@@ -40,13 +42,14 @@ export function useWishlist() {
     const updated = await $fetch<WishlistItem>(`/api/wishlist/${id}`, {
       method: 'PUT',
       body: data,
+      headers: authHeaders(),
     })
     items.value = items.value.map((i) => (i.id === id ? updated : i))
     return updated
   }
 
   async function removeFromWishlist(id: string) {
-    await $fetch(`/api/wishlist/${id}`, { method: 'DELETE' })
+    await $fetch(`/api/wishlist/${id}`, { method: 'DELETE', headers: authHeaders() })
     items.value = items.value.filter((i) => i.id !== id)
   }
 

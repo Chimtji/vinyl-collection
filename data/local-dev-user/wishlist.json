@@ -1,0 +1,50 @@
+[
+  {
+    "id": "fa3f18a9-56b6-4b49-bb76-1dec0850d5dc",
+    "itunesCollectionId": 617154241,
+    "title": "Random Access Memories",
+    "artist": "Daft Punk",
+    "genre": "Pop",
+    "year": 2013,
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/e8/43/5f/e8435ffa-b6b9-b171-40ab-4ff3959ab661/886443919266.jpg/500x500bb.jpg",
+    "trackCount": 14,
+    "priority": "medium",
+    "addedAt": "2026-04-04T19:56:52.606Z"
+  },
+  {
+    "id": "751d8b75-e15e-44a7-a270-7466e3bca1b8",
+    "itunesCollectionId": 252606580,
+    "title": "Justified",
+    "artist": "Justin Timberlake",
+    "genre": "Pop",
+    "year": 2002,
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/f9/76/d2/f976d242-4e68-1919-6576-ef4c869c077a/dj.umvqrvup.jpg/500x500bb.jpg",
+    "trackCount": 13,
+    "priority": "medium",
+    "addedAt": "2026-04-05T05:51:13.643Z"
+  },
+  {
+    "id": "10d0db67-20d2-410a-9a99-b623c2b86431",
+    "itunesCollectionId": 1422677780,
+    "title": "Back to Black",
+    "artist": "Amy Winehouse",
+    "genre": "R&B/Soul",
+    "year": 2006,
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/5a/72/3f/5a723fec-965d-3483-89f8-d66b79f88419/15UMGIM24224.rgb.jpg/500x500bb.jpg",
+    "trackCount": 11,
+    "priority": "medium",
+    "addedAt": "2026-04-05T06:17:47.767Z"
+  },
+  {
+    "id": "086a1f5b-f201-4f5c-b8c5-6974b8da0a85",
+    "itunesCollectionId": 1624173298,
+    "title": "Come Away with Me (Remastered)",
+    "artist": "Norah Jones",
+    "genre": "Pop",
+    "year": 2002,
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/a0/a0/8d/a0a08df2-390b-ad05-0d32-6673bcf7a2a9/13UABIM02784.rgb.jpg/500x500bb.jpg",
+    "trackCount": 14,
+    "priority": "medium",
+    "addedAt": "2026-04-05T06:28:16.080Z"
+  }
+]
