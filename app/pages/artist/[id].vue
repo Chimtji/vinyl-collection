@@ -6,8 +6,9 @@ definePageMeta({ ssr: false })
 const route = useRoute()
 const router = useRouter()
 const { searchArtists, getArtistAlbums, getArtworkUrl } = useAppleMusic()
-const { albums: collectionAlbums, fetchCollection } = useCollection()
-const { isWishlisted, fetchWishlist } = useWishlist()
+const { albums: collectionAlbums, fetchCollection, addAlbum } = useCollection()
+const { isWishlisted, fetchWishlist, addToWishlist, removeFromWishlist, getWishlistItem } =
+  useWishlist()
 
 const rawId = Number(route.params.id)
 const artistNameParam = computed(() => (route.query.name as string) || 'Artist')
@@ -155,6 +156,72 @@ function goToAlbum(album: ItunesAlbum) {
     router.push(`/album/itunes/${album.collectionId}`)
   }
 }
+
+// ── Wishlist ──────────────────────────────────────────────
+const wishlistPending = ref<number | null>(null)
+
+async function toggleWishlist(album: ItunesAlbum) {
+  wishlistPending.value = album.collectionId
+  try {
+    const existing = getWishlistItem(album.collectionId)
+    if (existing) {
+      await removeFromWishlist(existing.id)
+    } else {
+      await addToWishlist({
+        itunesCollectionId: album.collectionId,
+        title: album.collectionName,
+        artist: album.artistName,
+        genre: album.primaryGenreName || 'Other',
+        year: album.releaseDate ? new Date(album.releaseDate).getFullYear() : 0,
+        artworkUrl: getArtworkUrl(album.artworkUrl100, 500),
+        trackCount: album.trackCount,
+        priority: 'medium',
+      })
+    }
+  } finally {
+    wishlistPending.value = null
+  }
+}
+
+// ── Add to Collection ─────────────────────────────────────
+const addDialogVisible = ref(false)
+const addSaving = ref(false)
+const addForm = ref({
+  title: '',
+  artist: '',
+  genre: '',
+  year: new Date().getFullYear(),
+  artworkUrl: '',
+  notes: '',
+  itunesCollectionId: undefined as number | undefined,
+  trackCount: undefined as number | undefined,
+})
+
+function openAddDialog(album: ItunesAlbum) {
+  addForm.value = {
+    title: album.collectionName,
+    artist: album.artistName,
+    genre: album.primaryGenreName || '',
+    year: album.releaseDate ? new Date(album.releaseDate).getFullYear() : new Date().getFullYear(),
+    artworkUrl: getArtworkUrl(album.artworkUrl100, 600),
+    notes: '',
+    itunesCollectionId: album.collectionId,
+    trackCount: album.trackCount,
+  }
+  addDialogVisible.value = true
+}
+
+async function saveToCollection() {
+  addSaving.value = true
+  try {
+    await addAlbum({ ...addForm.value })
+    addDialogVisible.value = false
+  } catch (error) {
+    console.error('[Add to Collection Error]', error)
+  } finally {
+    addSaving.value = false
+  }
+}
 </script>
 
 <template>
@@ -268,6 +335,39 @@ function goToAlbum(album: ItunesAlbum) {
                 >
                   <i class="pi pi-heart-fill" />
                 </div>
+
+                <!-- Hover actions overlay -->
+                <div class="crate-item-actions" @click.stop>
+                  <Button
+                    v-if="!isInCollection(album)"
+                    :icon="isWishlisted(album.collectionId) ? 'pi pi-heart-fill' : 'pi pi-heart'"
+                    size="small"
+                    rounded
+                    :title="
+                      isWishlisted(album.collectionId)
+                        ? 'Fjern fra ønskeliste'
+                        : 'Tilføj til ønskeliste'
+                    "
+                    :loading="wishlistPending === album.collectionId"
+                    :class="{ 'btn-wishlisted': isWishlisted(album.collectionId) }"
+                    @click="toggleWishlist(album)"
+                  />
+                  <Button
+                    v-if="!isInCollection(album)"
+                    icon="pi pi-plus"
+                    size="small"
+                    rounded
+                    title="Tilføj til samling"
+                    @click="openAddDialog(album)"
+                  />
+                  <Button
+                    icon="pi pi-arrow-right"
+                    size="small"
+                    rounded
+                    title="Se album"
+                    @click.stop="goToAlbum(album)"
+                  />
+                </div>
               </div>
               <p class="artist-discog-title">{{ album.collectionName }}</p>
               <p class="artist-discog-year">
@@ -282,5 +382,57 @@ function goToAlbum(album: ItunesAlbum) {
         </div>
       </template>
     </template>
+
+    <!-- Add to Collection Dialog -->
+    <Dialog
+      v-model:visible="addDialogVisible"
+      header="Tilføj til samling"
+      modal
+      :style="{ width: '480px' }"
+    >
+      <div class="add-dialog-body">
+        <div v-if="addForm.artworkUrl" class="add-dialog-preview">
+          <img :src="addForm.artworkUrl" :alt="addForm.title" class="add-dialog-artwork" />
+          <div>
+            <p class="add-dialog-album-title">{{ addForm.title }}</p>
+            <p class="add-dialog-album-artist">{{ addForm.artist }}</p>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Albumtitel</label>
+          <InputText v-model="addForm.title" class="w-full" />
+        </div>
+        <div class="form-field">
+          <label>Kunstner</label>
+          <InputText v-model="addForm.artist" class="w-full" />
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Genre</label>
+            <InputText v-model="addForm.genre" class="w-full" />
+          </div>
+          <div class="form-field form-field-year">
+            <label>År</label>
+            <InputNumber v-model="addForm.year" :use-grouping="false" class="w-full" />
+          </div>
+        </div>
+        <div class="form-field">
+          <label
+            >Notater
+            <span style="color: var(--app-text-muted); font-weight: 400">(valgfrit)</span></label
+          >
+          <Textarea v-model="addForm.notes" rows="2" class="w-full" auto-resize />
+        </div>
+      </div>
+      <template #footer>
+        <Button label="Annuller" text @click="addDialogVisible = false" />
+        <Button
+          label="Tilføj til samling"
+          icon="pi pi-plus"
+          :loading="addSaving"
+          @click="saveToCollection"
+        />
+      </template>
+    </Dialog>
   </div>
 </template>

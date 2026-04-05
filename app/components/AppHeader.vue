@@ -1,5 +1,8 @@
 <script setup lang="ts">
 const isDark = ref(false)
+const router = useRouter()
+const route = useRoute()
+const headerSearchQuery = ref('')
 
 onMounted(() => {
   isDark.value = document.documentElement.classList.contains('dark-mode')
@@ -13,6 +16,23 @@ function toggleDark() {
     document.documentElement.classList.remove('dark-mode')
   }
 }
+
+function doHeaderSearch() {
+  const q = headerSearchQuery.value.trim()
+  if (!q) return
+  router.push({ path: '/search', query: { q } })
+  headerSearchQuery.value = ''
+}
+
+// Keep the search bar pre-filled when already on /search
+watch(
+  () => route.query.q,
+  (q) => {
+    if (route.path === '/search') headerSearchQuery.value = (q as string) || ''
+    else headerSearchQuery.value = ''
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -31,6 +51,23 @@ function toggleDark() {
         <NuxtLink to="/collection" class="header-nav-link">Administrer</NuxtLink>
       </nav>
       <div style="display: flex; align-items: center; gap: 0.5rem">
+        <div class="header-search">
+          <InputText
+            v-model="headerSearchQuery"
+            placeholder="Søg musik…"
+            class="header-search-input"
+            @keyup.enter="doHeaderSearch"
+          />
+          <Button
+            icon="pi pi-search"
+            text
+            rounded
+            size="small"
+            aria-label="Søg"
+            class="header-search-btn"
+            @click="doHeaderSearch"
+          />
+        </div>
         <Button
           text
           rounded
