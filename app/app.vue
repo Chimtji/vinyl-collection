@@ -14,9 +14,10 @@ const phrase = loadingPhrases[Math.floor(Math.random() * loadingPhrases.length)]
 </script>
 
 <template>
-  <!-- App always mounts so routing and middleware work normally -->
+  <!-- NuxtLayout always mounts so routing and middleware work normally.
+       NuxtPage is gated on ready so pages don't call APIs before auth is set. -->
   <NuxtLayout>
-    <NuxtPage />
+    <NuxtPage v-if="ready" />
   </NuxtLayout>
 
   <!-- Splash overlay sits on top until Identity init completes -->

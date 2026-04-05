@@ -37,10 +37,23 @@ export default defineNuxtPlugin(() => {
   netlifyIdentity.on('init', (u) => {
     user.value = (u as AuthUser) ?? null
     ready.value = true
+
+    const router = useRouter()
+    const currentPath = router.currentRoute.value.path
+
     if (u) {
       // Close the "logged in as" overlay the widget shows on init
       netlifyIdentity.close()
       runMigration()
+      // Logged in but stuck on /login — go to the app
+      if (currentPath === '/login') {
+        router.replace('/')
+      }
+    } else {
+      // Not logged in — redirect to /login from any protected route
+      if (currentPath !== '/login') {
+        router.replace('/login')
+      }
     }
   })
 
