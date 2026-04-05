@@ -49,7 +49,8 @@ export function useCollection() {
       }))
   })
 
-  async function fetchCollection() {
+  async function fetchCollection(force = false) {
+    if (!force && albums.value.length > 0) return albums.value
     loading.value = true
     try {
       const data = await $fetch<CollectionAlbum[]>('/api/collection', { headers: authHeaders() })

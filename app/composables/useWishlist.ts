@@ -17,7 +17,8 @@ export function useWishlist() {
   const loading = ref(false)
   const { authHeaders } = useAuth()
 
-  async function fetchWishlist() {
+  async function fetchWishlist(force = false) {
+    if (!force && items.value.length > 0) return items.value
     loading.value = true
     try {
       const data = await $fetch<WishlistItem[]>('/api/wishlist', { headers: authHeaders() })

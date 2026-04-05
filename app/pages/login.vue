@@ -11,8 +11,11 @@ watchEffect(() => {
 })
 
 onMounted(() => {
-  // Open the widget automatically when landing on this page
-  login()
+  // Only open the widget if not already authenticated.
+  // If already logged in, watchEffect above will redirect before this matters.
+  if (!isLoggedIn.value) {
+    login()
+  }
 })
 </script>
 

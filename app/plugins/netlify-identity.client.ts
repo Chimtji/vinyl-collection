@@ -37,8 +37,11 @@ export default defineNuxtPlugin(() => {
   netlifyIdentity.on('init', (u) => {
     user.value = (u as AuthUser) ?? null
     ready.value = true
-    // If the user was already logged in, run migration silently
-    if (u) runMigration()
+    if (u) {
+      // Close the "logged in as" overlay the widget shows on init
+      netlifyIdentity.close()
+      runMigration()
+    }
   })
 
   netlifyIdentity.on('login', (u) => {
