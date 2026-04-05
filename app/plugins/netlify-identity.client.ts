@@ -1,10 +1,15 @@
 import netlifyIdentity from 'netlify-identity-widget'
 import type { AuthUser } from '~/composables/useAuth'
 
-export default defineNuxtPlugin(() => {
+/**
+ * Async plugin — Nuxt holds the entire app startup (including the first
+ * navigation and middleware run) until this promise resolves. That means
+ * auth state is always known before any page component ever mounts.
+ */
+export default defineNuxtPlugin(async () => {
   const { user, ready, authHeaders } = useAuth()
 
-  // ── Local development ──────────────────────────────────────────────────────
+  // ── Local development ─────────────────────────────────────────────
   if (import.meta.dev) {
     user.value = {
       id: 'local-dev-user',
@@ -26,27 +31,29 @@ export default defineNuxtPlugin(() => {
     }
   }
 
-  // Safety valve: if on('init') never fires (network issue) unblock after 8 s.
-  const initTimeout = setTimeout(() => {
-    if (!ready.value) {
-      user.value = null
-      ready.value = true
-    }
-  }, 8000)
+  // Wait for Identity to check localStorage / refresh the stored token.
+  // This promise resolves as soon as on('init') fires (or after 8 s as a
+  // safety fallback). Nuxt will not run middleware or render any page until it
+  // resolves, so isLoggedIn is always accurate on the very first navigation.
+  await new Promise<void>((resolve) => {
+    netlifyIdentity.on('init', (u) => {
+      user.value = (u as AuthUser) ?? null
+      if (u) {
+        netlifyIdentity.close()
+        runMigration()
+      }
+      resolve()
+    })
 
-  // on('init') fires once the widget has checked localStorage for a stored
-  // session. We ONLY set state here — app.vue's watch(ready) handles routing.
-  netlifyIdentity.on('init', (u) => {
-    clearTimeout(initTimeout)
-    user.value = (u as AuthUser) ?? null
-    if (u) {
-      netlifyIdentity.close()
-      runMigration()
-    }
-    ready.value = true // this triggers the watch in app.vue
+    netlifyIdentity.init({ logo: false })
+
+    // Safety fallback: if init never fires, unblock as unauthenticated.
+    setTimeout(resolve, 8000)
   })
 
-  // Explicit widget login — navigate to home after state is set.
+  ready.value = true
+
+  // ── Post-init event handlers ────────────────────────────────────────
   netlifyIdentity.on('login', (u) => {
     user.value = u as AuthUser
     netlifyIdentity.close()
@@ -58,7 +65,5 @@ export default defineNuxtPlugin(() => {
     user.value = null
     navigateTo('/login')
   })
-
-  netlifyIdentity.init({ logo: false })
   ;(window as unknown as Record<string, unknown>).netlifyIdentity = netlifyIdentity
 })
