@@ -45,10 +45,3 @@ export default defineNuxtPlugin(() => {
   netlifyIdentity.init({ logo: false })
   ;(window as unknown as Record<string, unknown>).netlifyIdentity = netlifyIdentity
 })
-
-
-  netlifyIdentity.init({ logo: false })
-
-  // Expose the widget on the window so `useAuth` helpers can call open/close/logout
-  ;(window as unknown as Record<string, unknown>).netlifyIdentity = netlifyIdentity
-})
