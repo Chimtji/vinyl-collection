@@ -1,5 +1,6 @@
 <script setup lang="ts">
-const { ready } = useAuth()
+const { ready, isLoggedIn } = useAuth()
+const router = useRouter()
 
 const loadingPhrases = [
   'Shuffling through the records',
@@ -11,16 +12,34 @@ const loadingPhrases = [
 ]
 
 const phrase = loadingPhrases[Math.floor(Math.random() * loadingPhrases.length)]
+
+// Once Identity finishes initialising, make the one-time routing decision.
+// After this, the synchronous middleware handles all subsequent navigations.
+watch(
+  ready,
+  (isReady) => {
+    if (!isReady) return
+    const path = router.currentRoute.value.path
+    if (isLoggedIn.value) {
+      // Logged in — if we're sitting on /login just go home
+      if (path === '/login') router.replace('/')
+    } else {
+      // Not logged in — send to /login from any protected route
+      if (path !== '/login') router.replace('/login')
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
-  <!-- NuxtLayout and NuxtPage are always mounted.
-       Navigation (and therefore page component mounting) is blocked by the
-       async middleware until Identity resolves, so pages never run before
-       auth state is known. -->
-  <NuxtLayout>
-    <NuxtPage />
-  </NuxtLayout>
+  <!-- Only mount the layout + page tree once we know the auth state.
+       The splash overlay covers everything in the meantime. -->
+  <template v-if="ready">
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+  </template>
 
   <!-- Splash overlay sits on top until Identity init completes -->
   <Transition name="splash">
