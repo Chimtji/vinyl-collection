@@ -209,6 +209,14 @@ body {
   gap: 0.5rem;
 }
 
+.app-sidebar-credit {
+  margin: 0.25rem 0 0;
+  font-size: 0.7rem;
+  color: var(--app-text-muted);
+  text-align: center;
+  opacity: 0.6;
+}
+
 /* ── Content area ─────────────────────────────────────────── */
 .app-content {
   flex: 1;
@@ -2749,6 +2757,9 @@ body {
 
   /* Hide long-label buttons in mobile sidebar footer, keep icon-only */
   .app-sidebar-footer .p-button-label {
+    display: none;
+  }
+  .app-sidebar-credit {
     display: none;
   }
   .app-sidebar-footer .p-button {
