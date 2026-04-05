@@ -5,17 +5,17 @@ import { definePreset } from '@primevue/themes'
 const VinylPreset = definePreset(Aura, {
   semantic: {
     primary: {
-      50: '#FEF3C7',
-      100: '#FDE68A',
-      200: '#FCD34D',
-      300: '#FBBF24',
-      400: '#F59E0B',
-      500: '#D97706',
-      600: '#B45309',
-      700: '#92400E',
-      800: '#78350F',
-      900: '#451A03',
-      950: '#2C1000',
+      50: '#FEF2EC',
+      100: '#FDE0D0',
+      200: '#FAC0A0',
+      300: '#F59870',
+      400: '#EC7048',
+      500: '#C45529',
+      600: '#A8421E',
+      700: '#8B3318',
+      800: '#6B2612',
+      900: '#45180B',
+      950: '#2A0E06',
     },
     colorScheme: {
       dark: {
@@ -52,7 +52,7 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
           rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap',
+          href: 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap',
         },
       ],
     },
