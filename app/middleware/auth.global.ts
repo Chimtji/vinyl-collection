@@ -1,25 +1,41 @@
 /**
- * Synchronous route guard — never blocks navigation.
+ * Auth route guard.
  *
- * While Identity is still initialising (ready = false) every navigation is
- * allowed through; the splash overlay in app.vue covers the page so the user
- * sees nothing. The netlify-identity plugin handles the post-init redirect to
- * /login or / once it knows the auth state.
+ * Waits for Netlify Identity to finish initialising before making any routing
+ * decision. All concurrent guard invocations share a single promise so there
+ * is no duplication of watchers or race conditions.
  *
- * Once ready, normal auth rules apply for every subsequent navigation.
+ * NuxtPage is always mounted (no v-if on it), but because navigation does not
+ * complete until this middleware resolves, page components never mount before
+ * auth state is known — so API calls always have the correct auth headers.
  */
-export default defineNuxtRouteMiddleware((to) => {
-  // Bypass in local development — Netlify Identity requires a live site
-  if (import.meta.dev) return
 
-  // SSR guard (this app is SPA-only, but just in case)
+// Shared across all middleware invocations in this page session.
+let readyPromise: Promise<void> | null = null
+
+function waitForReady(ready: Ref<boolean>): Promise<void> {
+  if (ready.value) return Promise.resolve()
+  if (!readyPromise) {
+    readyPromise = new Promise<void>((resolve) => {
+      const stop = watch(ready, (val) => {
+        if (val) {
+          stop()
+          resolve()
+        }
+      })
+    })
+  }
+  return readyPromise
+}
+
+export default defineNuxtRouteMiddleware(async (to) => {
+  if (import.meta.dev) return
   if (import.meta.server) return
 
   const { isLoggedIn, ready } = useAuth()
 
-  // Identity hasn't finished initialising yet — let the navigation through.
-  // The plugin will call router.replace once init fires.
-  if (!ready.value) return
+  // Block until Identity has resolved its session check.
+  await waitForReady(ready)
 
   if (to.path === '/login') {
     if (isLoggedIn.value) return navigateTo('/')

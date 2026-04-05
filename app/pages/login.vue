@@ -2,25 +2,14 @@
 definePageMeta({ layout: 'auth' })
 useSeoMeta({ title: 'Log ind — Vinylsamling' })
 
-const { isLoggedIn, ready, login } = useAuth()
-const router = useRouter()
+const { login } = useAuth()
 
-// Wait for the Identity widget to finish its async init check before acting.
-// If we act before ready, isLoggedIn is always false even when a session exists.
-watch(
-  ready,
-  (isReady) => {
-    if (!isReady) return
-    if (isLoggedIn.value) {
-      // Already authenticated — go straight to the app, never open the widget
-      router.replace('/')
-    } else {
-      // Not logged in — open the widget now
-      login()
-    }
-  },
-  { immediate: true },
-)
+// By the time this page mounts the middleware has already confirmed the user
+// is NOT logged in (it would have redirected to / otherwise). Just open the
+// Identity widget immediately.
+onMounted(() => {
+  login()
+})
 </script>
 
 <template>
