@@ -34,27 +34,47 @@ export default defineNuxtPlugin(() => {
     }
   }
 
-  netlifyIdentity.on('init', (u) => {
-    user.value = (u as AuthUser) ?? null
+  /**
+   * Called once we know the auth state (either from init, error, or timeout).
+   * Sets ready and routes accordingly.
+   */
+  function handleAuthResolved(u: AuthUser | null) {
+    if (ready.value) return // already resolved — ignore duplicate calls
+    user.value = u
     ready.value = true
 
     const router = useRouter()
     const currentPath = router.currentRoute.value.path
 
     if (u) {
-      // Close the "logged in as" overlay the widget shows on init
       netlifyIdentity.close()
       runMigration()
-      // Logged in but stuck on /login — go to the app
       if (currentPath === '/login') {
         router.replace('/')
       }
     } else {
-      // Not logged in — redirect to /login from any protected route
       if (currentPath !== '/login') {
         router.replace('/login')
       }
     }
+  }
+
+  // Fallback: if the Identity widget never fires 'init' (network timeout, etc.)
+  // unblock the app after 6 s and send the user to /login.
+  const initTimeout = setTimeout(() => {
+    console.warn('[netlify-identity] init timeout — proceeding unauthenticated')
+    handleAuthResolved(null)
+  }, 6000)
+
+  netlifyIdentity.on('error', (err) => {
+    console.error('[netlify-identity] error:', err)
+    clearTimeout(initTimeout)
+    handleAuthResolved(null)
+  })
+
+  netlifyIdentity.on('init', (u) => {
+    clearTimeout(initTimeout)
+    handleAuthResolved((u as AuthUser) ?? null)
   })
 
   netlifyIdentity.on('login', (u) => {
