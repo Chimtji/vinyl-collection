@@ -5,9 +5,6 @@
  * working out of the box without a live Netlify site.
  */
 export default defineNuxtRouteMiddleware(async (to) => {
-  // Never redirect away from the login page itself
-  if (to.path === '/login') return
-
   // Bypass in local development — Netlify Identity requires a live site
   if (import.meta.dev) return
 
@@ -33,6 +30,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
         resolve()
       }, 4000)
     })
+  }
+
+  // Already on the login page
+  if (to.path === '/login') {
+    // If logged in, skip the login page entirely
+    if (isLoggedIn.value) return navigateTo('/')
+    return
   }
 
   if (!isLoggedIn.value) {

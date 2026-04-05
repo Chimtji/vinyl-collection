@@ -2,21 +2,25 @@
 definePageMeta({ layout: 'auth' })
 useSeoMeta({ title: 'Log ind — Vinylsamling' })
 
-const { isLoggedIn, login } = useAuth()
+const { isLoggedIn, ready, login } = useAuth()
 const router = useRouter()
 
-// If already authenticated, skip the login page
-watchEffect(() => {
-  if (isLoggedIn.value) router.replace('/')
-})
-
-onMounted(() => {
-  // Only open the widget if not already authenticated.
-  // If already logged in, watchEffect above will redirect before this matters.
-  if (!isLoggedIn.value) {
-    login()
-  }
-})
+// Wait for the Identity widget to finish its async init check before acting.
+// If we act before ready, isLoggedIn is always false even when a session exists.
+watch(
+  ready,
+  (isReady) => {
+    if (!isReady) return
+    if (isLoggedIn.value) {
+      // Already authenticated — go straight to the app, never open the widget
+      router.replace('/')
+    } else {
+      // Not logged in — open the widget now
+      login()
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
