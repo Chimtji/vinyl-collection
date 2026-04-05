@@ -35,46 +35,63 @@ export default defineNuxtPlugin(() => {
   }
 
   /**
-   * Called once we know the auth state (either from init, error, or timeout).
-   * Sets ready and routes accordingly.
+   * Route based on the resolved auth state. Always safe to call multiple times —
+   * later calls with a real user override an earlier timeout-driven null result.
    */
-  function handleAuthResolved(u: AuthUser | null) {
-    if (ready.value) return // already resolved — ignore duplicate calls
-    user.value = u
-    ready.value = true
-
+  function routeAfterAuth(u: AuthUser | null) {
     const router = useRouter()
     const currentPath = router.currentRoute.value.path
-
     if (u) {
       netlifyIdentity.close()
       runMigration()
+      // Send to home if stuck on the login page
       if (currentPath === '/login') {
         router.replace('/')
       }
     } else {
+      // Not authenticated — make sure we are on the login page
       if (currentPath !== '/login') {
         router.replace('/login')
       }
     }
   }
 
-  // Fallback: if the Identity widget never fires 'init' (network timeout, etc.)
-  // unblock the app after 6 s and send the user to /login.
+  // Fallback: unblock the splash if Identity never fires 'init' (e.g. network
+  // issues). We assume unauthenticated so the login page shows. If init later
+  // fires with a real user we handle it in the on('init') listener below.
   const initTimeout = setTimeout(() => {
-    console.warn('[netlify-identity] init timeout — proceeding unauthenticated')
-    handleAuthResolved(null)
-  }, 6000)
+    console.warn('[netlify-identity] init timeout — unblocking as unauthenticated')
+    if (!ready.value) {
+      ready.value = true
+      routeAfterAuth(null)
+    }
+  }, 8000)
 
   netlifyIdentity.on('error', (err) => {
     console.error('[netlify-identity] error:', err)
     clearTimeout(initTimeout)
-    handleAuthResolved(null)
+    if (!ready.value) {
+      ready.value = true
+      routeAfterAuth(null)
+    }
   })
 
   netlifyIdentity.on('init', (u) => {
     clearTimeout(initTimeout)
-    handleAuthResolved((u as AuthUser) ?? null)
+    const resolvedUser = (u as AuthUser) ?? null
+
+    // Always update the user — init may fire after the timeout already
+    // set ready=true with null. We must still honour a valid session.
+    user.value = resolvedUser
+
+    if (!ready.value) {
+      // Normal path: init fired before the timeout
+      ready.value = true
+    }
+
+    // Always route: if the timeout redirected to /login but the user IS
+    // authenticated, we need to send them home.
+    routeAfterAuth(resolvedUser)
   })
 
   netlifyIdentity.on('login', (u) => {
