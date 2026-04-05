@@ -1,9 +1,7 @@
 /**
  * Synchronous auth route guard.
- *
- * By the time any page component mounts, Identity has already resolved
- * (app.vue gates the entire layout behind v-if="ready"). This guard only
- * needs to check the already-known auth state — no async waiting required.
+ * The plugin sets ready=true immediately so user always starts logged out.
+ * This guard only needs to check isLoggedIn — no async waiting required.
  */
 export default defineNuxtRouteMiddleware((to) => {
   if (import.meta.dev) return
