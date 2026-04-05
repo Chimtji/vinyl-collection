@@ -216,6 +216,7 @@ async function fetchDiscogsCollection() {
 
 async function doImport() {
   importSaving.value = true
+  importError.value = ''
   try {
     const toAdd = importCandidates.value.filter((c) => c.selected && !c.duplicate)
     for (const item of toAdd) {
@@ -232,6 +233,10 @@ async function doImport() {
     importStep.value = 'input'
     importUsername.value = ''
     importCandidates.value = []
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    importError.value = `Import failed: ${msg}`
+    console.error('[doImport]', err)
   } finally {
     importSaving.value = false
   }
