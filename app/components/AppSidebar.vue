@@ -116,6 +116,9 @@ function openImport() {
         outlined
         @click="openImport"
       />
+      <ClientOnly>
+        <BarcodeScanner />
+      </ClientOnly>
       <p class="app-sidebar-credit">Made with 🔥 by Chimtji</p>
     </div>
   </aside>
