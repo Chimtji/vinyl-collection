@@ -28,7 +28,7 @@ function onNetlify() {
 export async function readCollection(): Promise<CollectionAlbum[]> {
   if (onNetlify()) {
     try {
-      const store = getStore(STORE_NAME)
+      const store = getStore({ name: STORE_NAME, consistency: 'strong' })
       const data = await store.get(COLLECTION_KEY, { type: 'json' })
       return (data as CollectionAlbum[]) ?? []
     } catch {

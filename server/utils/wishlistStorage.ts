@@ -29,7 +29,7 @@ function onNetlify() {
 export async function readWishlist(): Promise<WishlistItem[]> {
   if (onNetlify()) {
     try {
-      const store = getStore(STORE_NAME)
+      const store = getStore({ name: STORE_NAME, consistency: 'strong' })
       const data = await store.get(WISHLIST_KEY, { type: 'json' })
       return (data as WishlistItem[]) ?? []
     } catch {

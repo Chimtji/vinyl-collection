@@ -1,4 +1,7 @@
 export default defineEventHandler(async (event) => {
+  setResponseHeaders(event, {
+    'Cache-Control': 'no-store',
+  })
   const id = getRouterParam(event, 'id')
   const album = (await readCollection()).find((a) => a.id === id)
   if (!album) {
