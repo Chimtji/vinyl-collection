@@ -4,17 +4,9 @@ const router = useRouter()
 const { albums, genres } = useCollection()
 const { items: wishlistItems, fetchWishlist } = useWishlist()
 
-const isDark = ref(false)
-
 onMounted(() => {
-  isDark.value = document.documentElement.classList.contains('dark-mode')
   fetchWishlist()
 })
-
-function toggleDark() {
-  isDark.value = !isDark.value
-  document.documentElement.classList.toggle('dark-mode', isDark.value)
-}
 
 type NavItem =
   | { type: 'link'; id: string; label: string; icon: string; to: string; badge?: () => number }
@@ -106,26 +98,23 @@ function openImport() {
 
     <!-- Footer actions -->
     <div class="app-sidebar-footer">
-      <NuxtLink to="/search" style="display: block; margin-bottom: 0.5rem">
-        <Button icon="pi pi-plus" label="Add Album" class="w-full" size="small" />
+      <NuxtLink to="/search" style="display: block; width: 100%; margin-bottom: 0.5rem">
+        <Button
+          icon="pi pi-plus"
+          label="Add Album"
+          class="w-full"
+          style="width: 100%"
+          size="small"
+        />
       </NuxtLink>
       <Button
         icon="pi pi-download"
         label="Import from Discogs"
         class="w-full"
+        style="width: 100%"
         size="small"
         outlined
-        style="margin-bottom: 0.75rem"
         @click="openImport"
-      />
-      <Button
-        text
-        rounded
-        :icon="isDark ? 'pi pi-sun' : 'pi pi-moon'"
-        :aria-label="isDark ? 'Light mode' : 'Dark mode'"
-        size="small"
-        style="color: var(--app-text-muted); width: 100%"
-        @click="toggleDark"
       />
     </div>
   </aside>

@@ -36,20 +36,20 @@ const oldestYear = computed(() => {
 
 // ── Charts (Chart.js) ────────────────────────────────────────────────────
 const CHART_COLORS = [
-  '#7c3aed',
-  '#4f46e5',
-  '#2563eb',
-  '#0891b2',
-  '#059669',
-  '#d97706',
-  '#dc2626',
-  '#db2777',
+  '#C45529',
+  '#E8845A',
+  '#D4AC6E',
+  '#7A9E8A',
+  '#5C7A9E',
+  '#E8C07A',
+  '#9E5C7A',
+  '#8B7355',
 ]
 
 const isDark = ref(true)
 
-const labelColor = computed(() => (isDark.value ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.65)'))
-const gridColor = computed(() => (isDark.value ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)'))
+const labelColor = computed(() => (isDark.value ? 'rgba(245,239,230,0.75)' : 'rgba(26,22,20,0.65)'))
+const gridColor = computed(() => (isDark.value ? 'rgba(220,180,140,0.12)' : 'rgba(60,40,20,0.10)'))
 
 // ── Chart.js canvas refs & instances ─────────────────────────────────────
 const radarCanvas = ref<HTMLCanvasElement | null>(null)
@@ -77,10 +77,10 @@ async function buildCharts() {
         datasets: [
           {
             data: gs.map((g) => g.albums.length),
-            backgroundColor: 'rgba(124,58,237,0.2)',
-            borderColor: '#7c3aed',
+            backgroundColor: 'rgba(196,85,41,0.15)',
+            borderColor: '#C45529',
             borderWidth: 2,
-            pointBackgroundColor: '#a78bfa',
+            pointBackgroundColor: '#E8845A',
             pointRadius: 4,
           },
         ],
@@ -151,7 +151,7 @@ async function buildCharts() {
         datasets: [
           {
             data: sorted.map(([, count]) => count),
-            backgroundColor: '#7c3aed',
+            backgroundColor: '#C45529',
             borderRadius: 4,
             borderSkipped: false,
           },
@@ -339,8 +339,8 @@ function fmtDKK(n: number) {
     <!-- Stats row -->
     <div class="dash-stats-row">
       <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(124, 58, 237, 0.15)">
-          <i class="pi pi-th-large" style="color: #a78bfa" />
+        <div class="dash-stat-icon" style="background: rgba(196, 85, 41, 0.12)">
+          <i class="pi pi-th-large" style="color: #C45529" />
         </div>
         <div>
           <p class="dash-stat-val">{{ totalAlbums }}</p>
@@ -348,8 +348,8 @@ function fmtDKK(n: number) {
         </div>
       </div>
       <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(79, 70, 229, 0.15)">
-          <i class="pi pi-user" style="color: #818cf8" />
+        <div class="dash-stat-icon" style="background: rgba(196, 85, 41, 0.08)">
+          <i class="pi pi-user" style="color: #E8845A" />
         </div>
         <div>
           <p class="dash-stat-val">{{ totalArtists }}</p>
@@ -357,8 +357,8 @@ function fmtDKK(n: number) {
         </div>
       </div>
       <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(8, 145, 178, 0.15)">
-          <i class="pi pi-tag" style="color: #22d3ee" />
+        <div class="dash-stat-icon" style="background: rgba(122, 158, 138, 0.12)">
+          <i class="pi pi-tag" style="color: #7A9E8A" />
         </div>
         <div>
           <p class="dash-stat-val">{{ totalGenres }}</p>
