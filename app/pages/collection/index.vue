@@ -2,7 +2,7 @@
 import type { CollectionAlbum } from '~/composables/useCollection'
 
 definePageMeta({ ssr: false })
-useSeoMeta({ title: 'Collection — Vinyl Collection' })
+useSeoMeta({ title: 'Samling — Vinylsamling' })
 
 // ── View state — driven by URL query param ────────────────
 type View = 'genres' | 'albums' | 'artists'
@@ -10,9 +10,9 @@ const route = useRoute()
 const router = useRouter()
 
 const navItems: { id: View; label: string; icon: string }[] = [
-  { id: 'genres', label: 'Genres', icon: 'pi pi-tag' },
+  { id: 'genres', label: 'Genrer', icon: 'pi pi-tag' },
   { id: 'albums', label: 'Albums', icon: 'pi pi-th-large' },
-  { id: 'artists', label: 'Artists', icon: 'pi pi-user' },
+  { id: 'artists', label: 'Kunstnere', icon: 'pi pi-user' },
 ]
 
 function viewFromQuery(): View {
@@ -208,7 +208,7 @@ async function fetchDiscogsCollection() {
     importStep.value = 'preview'
   } catch (err: unknown) {
     const msg = (err as { data?: { message?: string } })?.data?.message
-    importError.value = msg ?? 'Failed to fetch collection'
+    importError.value = msg ?? 'Kunne ikke hente samling'
   } finally {
     importLoading.value = false
   }
@@ -404,7 +404,7 @@ async function doDelete() {
       <div class="collection-main-controls">
         <InputText
           v-model="search"
-          placeholder="Filter…"
+          placeholder="Filtrer…"
           size="small"
           class="collection-search-input"
         />
@@ -412,7 +412,7 @@ async function doDelete() {
           <button
             class="view-toggle-btn"
             :class="{ active: groupBySections }"
-            title="Group by letter"
+            title="Gruppér efter bogstav"
             @click="groupBySections = !groupBySections"
           >
             <i class="pi pi-sort-alpha-down" />
@@ -421,7 +421,7 @@ async function doDelete() {
             <button
               class="view-toggle-btn"
               :class="{ active: !listView }"
-              title="Grid view"
+              title="Gittervisning"
               @click="listView = false"
             >
               <i class="pi pi-th-large" />
@@ -429,7 +429,7 @@ async function doDelete() {
             <button
               class="view-toggle-btn"
               :class="{ active: listView }"
-              title="List view"
+              title="Listevisning"
               @click="listView = true"
             >
               <i class="pi pi-list" />
@@ -445,14 +445,14 @@ async function doDelete() {
 
     <div v-else-if="albums.length === 0" class="empty-state">
       <div class="empty-state-icon"><i class="pi pi-disc" /></div>
-      <p class="empty-state-title">Your collection is empty</p>
+      <p class="empty-state-title">Din samling er tom</p>
       <NuxtLink to="/search">
-        <Button icon="pi pi-search" label="Search Music" style="margin-top: 1rem" />
+        <Button icon="pi pi-search" label="Søg musik" style="margin-top: 1rem" />
       </NuxtLink>
     </div>
 
     <div v-else-if="filtered.length === 0" class="empty-state">
-      <p class="empty-state-title">No matches for "{{ search }}"</p>
+      <p class="empty-state-title">Ingen matches for &quot;{{ search }}&quot;</p>
     </div>
 
     <template v-else>
@@ -593,7 +593,7 @@ async function doDelete() {
                   text
                   rounded
                   size="small"
-                  aria-label="Edit"
+                  aria-label="Rediger"
                   @click="openEdit(album)"
                 />
                 <Button
@@ -602,7 +602,7 @@ async function doDelete() {
                   rounded
                   size="small"
                   severity="danger"
-                  aria-label="Delete"
+                  aria-label="Slet"
                   @click="confirmDelete = album"
                 />
               </div>
@@ -681,17 +681,17 @@ async function doDelete() {
     <!-- ── Edit Dialog ───────────────────────────────────── -->
     <Dialog
       v-model:visible="editDialogVisible"
-      header="Edit Album"
+      header="Rediger album"
       modal
       :style="{ width: '480px' }"
     >
       <div v-if="editForm" class="add-dialog-body">
         <div class="form-field">
-          <label>Album Title</label>
+          <label>Albumtitel</label>
           <InputText v-model="editForm.title" class="w-full" />
         </div>
         <div class="form-field">
-          <label>Artist</label>
+          <label>Kunstner</label>
           <InputText v-model="editForm.artist" class="w-full" />
         </div>
         <div class="form-row">
@@ -700,21 +700,21 @@ async function doDelete() {
             <InputText v-model="editForm.genre" class="w-full" />
           </div>
           <div class="form-field form-field-year">
-            <label>Year</label>
+            <label>År</label>
             <InputNumber v-model="editForm.year" :use-grouping="false" class="w-full" />
           </div>
         </div>
         <div class="form-field">
           <label>
-            Notes
-            <span style="color: var(--app-text-muted); font-weight: 400">(optional)</span>
+            Notater
+            <span style="color: var(--app-text-muted); font-weight: 400">(valgfrit)</span>
           </label>
           <Textarea v-model="editForm.notes" rows="2" class="w-full" auto-resize />
         </div>
       </div>
       <template #footer>
-        <Button label="Cancel" text @click="editDialogVisible = false" />
-        <Button label="Save" icon="pi pi-check" :loading="editSaving" @click="saveEdit" />
+        <Button label="Annuller" text @click="editDialogVisible = false" />
+        <Button label="Gem" icon="pi pi-check" :loading="editSaving" @click="saveEdit" />
       </template>
     </Dialog>
 
@@ -722,7 +722,9 @@ async function doDelete() {
     <Dialog
       v-model:visible="importDialogVisible"
       :header="
-        importStep === 'input' ? 'Import from Discogs' : `Found ${importCandidates.length} releases`
+        importStep === 'input'
+          ? 'Importer fra Discogs'
+          : `Fandt ${importCandidates.length} udgivelser`
       "
       modal
       :style="{ width: '600px', maxWidth: '95vw' }"
@@ -731,19 +733,19 @@ async function doDelete() {
       <!-- Step 1: username input -->
       <div v-if="importStep === 'input'" class="import-step-input">
         <p class="import-description">
-          Enter your Discogs username to import your entire collection. Only public collections can
-          be imported.
+          Indtast dit Discogs-brugernavn for at importere din samling. Kun offentlige samlinger kan
+          importeres.
         </p>
         <div class="import-username-row">
           <InputText
             v-model="importUsername"
-            placeholder="Discogs username"
+            placeholder="Discogs-brugernavn"
             class="flex-1"
             :disabled="importLoading"
             @keydown.enter="fetchDiscogsCollection"
           />
           <Button
-            label="Fetch"
+            label="Hent"
             icon="pi pi-search"
             :loading="importLoading"
             :disabled="!importUsername.trim()"
@@ -759,7 +761,7 @@ async function doDelete() {
       <div v-else class="import-step-preview">
         <div class="import-preview-summary">
           <span class="import-summary-new"
-            >{{ importCandidates.filter((c) => !c.duplicate).length }} new</span
+            >{{ importCandidates.filter((c) => !c.duplicate).length }} ny</span
           >
           <span
             v-if="
@@ -772,10 +774,10 @@ async function doDelete() {
             {{
               importCandidates.filter((c) => !c.duplicate && c.matchConfidence !== 'exact').length
             }}
-            need review
+            kræver gennemsyn
           </span>
           <span class="import-summary-dup"
-            >{{ importCandidates.filter((c) => c.duplicate).length }} already in collection</span
+            >{{ importCandidates.filter((c) => c.duplicate).length }} allerede i samling</span
           >
           <button
             class="import-toggle-all"
@@ -785,7 +787,7 @@ async function doDelete() {
               })
             "
           >
-            Toggle all
+            Vælg/fravælg alle
           </button>
         </div>
         <div class="import-preview-list">
@@ -826,34 +828,34 @@ async function doDelete() {
                 class="import-preview-matched"
               >
                 <i class="pi pi-info-circle" />
-                Matched as: <em>{{ item.matchedTitle }}</em>
+                Matchet som: <em>{{ item.matchedTitle }}</em>
                 <template v-if="item.matchedArtist">
                   by <em>{{ item.matchedArtist }}</em></template
                 >
               </p>
             </div>
-            <span v-if="item.duplicate" class="import-dup-badge">Already added</span>
+            <span v-if="item.duplicate" class="import-dup-badge">Allerede tilføjet</span>
             <span
               v-else-if="item.matchConfidence === 'exact'"
               class="import-confidence-badge exact"
             >
-              <i class="pi pi-check" /> Exact
+              <i class="pi pi-check" /> Nøjagtig
             </span>
             <span
               v-else-if="item.matchConfidence === 'review'"
               class="import-confidence-badge review"
             >
-              <i class="pi pi-exclamation-triangle" /> Review
+              <i class="pi pi-exclamation-triangle" /> Gennemsyn
             </span>
             <span v-else class="import-confidence-badge no-match">
-              <i class="pi pi-ban" /> No match
+              <i class="pi pi-ban" /> Intet match
             </span>
             <button
               v-if="!item.duplicate && item.matchConfidence !== 'exact'"
               class="find-manually-btn"
               @click.stop="openManualSearch(item)"
             >
-              <i class="pi pi-search" /> Find manually
+              <i class="pi pi-search" /> Find manuelt
             </button>
           </label>
         </div>
@@ -861,18 +863,18 @@ async function doDelete() {
 
       <template #footer>
         <template v-if="importStep === 'input'">
-          <Button label="Cancel" text @click="importDialogVisible = false" />
+          <Button label="Annuller" text @click="importDialogVisible = false" />
         </template>
         <template v-else>
           <Button
-            label="Back"
+            label="Tilbage"
             text
             icon="pi pi-arrow-left"
             @click="importStep = 'input'"
             :disabled="importSaving"
           />
           <Button
-            :label="`Import ${importSelectedCount} album${importSelectedCount !== 1 ? 's' : ''}`"
+            :label="`Importer ${importSelectedCount} album${importSelectedCount !== 1 ? 's' : ''}`"
             icon="pi pi-download"
             :loading="importSaving"
             :disabled="importSelectedCount === 0"
@@ -893,7 +895,7 @@ async function doDelete() {
       <template #header>
         <div class="manual-modal-header">
           <div class="manual-modal-title">
-            <span class="manual-modal-for">Finding match for</span>
+            <span class="manual-modal-for">Finder match for</span>
             <strong class="manual-modal-item-name">
               {{ manualModalItem?.artist }} – {{ manualModalItem?.title }}
             </strong>
@@ -902,7 +904,7 @@ async function doDelete() {
             <span
               class="manual-breadcrumb-step"
               :class="{ active: manualStep === 'artist', done: manualStep === 'albums' }"
-              >1 · Artist</span
+              >1 · Kunstner</span
             >
             <i class="pi pi-chevron-right manual-breadcrumb-sep" />
             <span class="manual-breadcrumb-step" :class="{ active: manualStep === 'albums' }"
@@ -918,14 +920,14 @@ async function doDelete() {
           <div class="manual-search-fields">
             <InputText
               v-model="manualArtistQuery"
-              placeholder="Artist name…"
+              placeholder="Kunstnernavn…"
               size="small"
               class="flex-1"
               @keydown.enter="searchArtists"
             />
             <Button
               icon="pi pi-search"
-              label="Search"
+              label="Søg"
               size="small"
               :loading="manualSearchLoading"
               @click="searchArtists"
@@ -935,7 +937,7 @@ async function doDelete() {
             <ProgressSpinner stroke-width="4" style="width: 32px; height: 32px" />
           </div>
           <div v-else-if="manualArtistResults.length === 0" class="manual-search-empty">
-            No artists found
+            Ingen kunstnere fundet
           </div>
           <div v-else class="manual-artist-list">
             <button
@@ -966,7 +968,7 @@ async function doDelete() {
         <template v-else>
           <div class="manual-discog-header">
             <button class="manual-back-btn" @click="manualStep = 'artist'">
-              <i class="pi pi-arrow-left" /> Back
+              <i class="pi pi-arrow-left" /> Tilbage
             </button>
             <span class="manual-discog-artist">{{ manualSelectedArtist?.artistName }}</span>
           </div>
@@ -974,7 +976,7 @@ async function doDelete() {
             <ProgressSpinner stroke-width="4" style="width: 32px; height: 32px" />
           </div>
           <div v-else-if="manualAlbums.length === 0" class="manual-search-empty">
-            No albums found
+            Ingen albums fundet
           </div>
           <div v-else class="manual-album-grid">
             <button
@@ -1003,17 +1005,17 @@ async function doDelete() {
     <!-- ── Delete Dialog ─────────────────────────────────── -->
     <Dialog
       v-model:visible="showDeleteDialog"
-      header="Delete Album"
+      header="Slet album"
       modal
       :style="{ width: '380px' }"
     >
       <p style="margin: 0">
-        Remove <strong>{{ confirmDelete?.title }}</strong> from your collection?
+        Fjern <strong>{{ confirmDelete?.title }}</strong> fra din samling?
       </p>
       <template #footer>
-        <Button label="Cancel" text @click="confirmDelete = null" />
+        <Button label="Annuller" text @click="confirmDelete = null" />
         <Button
-          label="Delete"
+          label="Slet"
           icon="pi pi-trash"
           severity="danger"
           :loading="deleting"

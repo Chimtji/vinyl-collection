@@ -13,13 +13,13 @@ type NavItem =
   | { type: 'section'; label: string }
 
 const navItems: NavItem[] = [
-  { type: 'link', id: 'dashboard', label: 'Dashboard', icon: 'pi pi-home', to: '/' },
-  { type: 'link', id: 'search', label: 'Search', icon: 'pi pi-search', to: '/search' },
-  { type: 'section', label: 'Collection' },
+  { type: 'link', id: 'dashboard', label: 'Overblik', icon: 'pi pi-home', to: '/' },
+  { type: 'link', id: 'search', label: 'Søg', icon: 'pi pi-search', to: '/search' },
+  { type: 'section', label: 'Samling' },
   {
     type: 'link',
     id: 'genres',
-    label: 'Genres',
+    label: 'Genrer',
     icon: 'pi pi-tag',
     to: '/collection?view=genres',
     badge: () => genres.value.length,
@@ -35,16 +35,16 @@ const navItems: NavItem[] = [
   {
     type: 'link',
     id: 'artists',
-    label: 'Artists',
+    label: 'Kunstnere',
     icon: 'pi pi-user',
     to: '/collection?view=artists',
     badge: () => new Set(albums.value.map((a) => a.artist)).size,
   },
-  { type: 'section', label: 'Wishlist' },
+  { type: 'section', label: 'Ønskeliste' },
   {
     type: 'link',
     id: 'wishlist',
-    label: 'Wishlist',
+    label: 'Ønskeliste',
     icon: 'pi pi-heart',
     to: '/wishlist',
     badge: () => wishlistItems.value.length,
@@ -101,7 +101,7 @@ function openImport() {
       <NuxtLink to="/search" style="display: block; width: 100%; margin-bottom: 0.5rem">
         <Button
           icon="pi pi-plus"
-          label="Add Album"
+          label="Tilføj album"
           class="w-full"
           style="width: 100%"
           size="small"
@@ -109,7 +109,7 @@ function openImport() {
       </NuxtLink>
       <Button
         icon="pi pi-download"
-        label="Import from Discogs"
+        label="Importer fra Discogs"
         class="w-full"
         style="width: 100%"
         size="small"

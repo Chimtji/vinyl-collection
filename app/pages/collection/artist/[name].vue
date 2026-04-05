@@ -98,8 +98,7 @@ async function doDelete(album: CollectionAlbum) {
         <div>
           <h2 class="collection-main-title" style="margin: 0">{{ artistName }}</h2>
           <p style="font-size: 0.8rem; color: var(--app-text-muted); margin: 0.15rem 0 0">
-            {{ artistAlbums.length }} {{ artistAlbums.length === 1 ? 'album' : 'albums' }} in
-            collection
+            {{ artistAlbums.length }} {{ artistAlbums.length === 1 ? 'album' : 'albums' }} i samling
           </p>
         </div>
       </div>
@@ -108,12 +107,12 @@ async function doDelete(album: CollectionAlbum) {
           text
           size="small"
           icon="pi pi-external-link"
-          label="Full discography"
+          label="Fuld diskografi"
           @click="router.push(`/artist/0?name=${encodeURIComponent(artistName)}`)"
         />
         <InputText
           v-model="search"
-          placeholder="Filter…"
+          placeholder="Filtrer…"
           size="small"
           class="collection-search-input"
         />
@@ -121,7 +120,7 @@ async function doDelete(album: CollectionAlbum) {
           <button
             class="view-toggle-btn"
             :class="{ active: groupBySections }"
-            title="Group by letter"
+            title="Gruppér efter bogstav"
             @click="groupBySections = !groupBySections"
           >
             <i class="pi pi-sort-alpha-down" />
@@ -130,7 +129,7 @@ async function doDelete(album: CollectionAlbum) {
             <button
               class="view-toggle-btn"
               :class="{ active: !listView }"
-              title="Grid view"
+              title="Gittervisning"
               @click="listView = false"
             >
               <i class="pi pi-th-large" />
@@ -138,7 +137,7 @@ async function doDelete(album: CollectionAlbum) {
             <button
               class="view-toggle-btn"
               :class="{ active: listView }"
-              title="List view"
+              title="Listevisning"
               @click="listView = true"
             >
               <i class="pi pi-list" />
@@ -154,11 +153,11 @@ async function doDelete(album: CollectionAlbum) {
 
     <div v-else-if="artistAlbums.length === 0" class="empty-state">
       <div class="empty-state-icon"><i class="pi pi-disc" /></div>
-      <p class="empty-state-title">No albums by this artist</p>
+      <p class="empty-state-title">Ingen albums af denne kunstner</p>
     </div>
 
     <div v-else-if="filteredAlbums.length === 0" class="empty-state">
-      <p class="empty-state-title">No matches for "{{ search }}"</p>
+      <p class="empty-state-title">Ingen matches for &quot;{{ search }}&quot;</p>
     </div>
 
     <template v-else>
@@ -229,7 +228,7 @@ async function doDelete(album: CollectionAlbum) {
                 text
                 rounded
                 size="small"
-                aria-label="Edit"
+                aria-label="Rediger"
                 @click="openEdit(album)"
               />
               <Button
@@ -238,7 +237,7 @@ async function doDelete(album: CollectionAlbum) {
                 rounded
                 size="small"
                 severity="danger"
-                aria-label="Delete"
+                aria-label="Slet"
                 @click="confirmDelete = album"
               />
             </div>
@@ -251,17 +250,17 @@ async function doDelete(album: CollectionAlbum) {
     <!-- Edit Dialog -->
     <Dialog
       v-model:visible="editDialogVisible"
-      header="Edit Album"
+      header="Rediger album"
       modal
       :style="{ width: '480px' }"
     >
       <div v-if="editForm" class="add-dialog-body">
         <div class="form-field">
-          <label>Album Title</label>
+          <label>Albumtitel</label>
           <InputText v-model="editForm.title" class="w-full" />
         </div>
         <div class="form-field">
-          <label>Artist</label>
+          <label>Kunstner</label>
           <InputText v-model="editForm.artist" class="w-full" />
         </div>
         <div class="form-row">
@@ -270,38 +269,38 @@ async function doDelete(album: CollectionAlbum) {
             <InputText v-model="editForm.genre" class="w-full" />
           </div>
           <div class="form-field form-field-year">
-            <label>Year</label>
+            <label>År</label>
             <InputNumber v-model="editForm.year" :use-grouping="false" class="w-full" />
           </div>
         </div>
         <div class="form-field">
           <label
-            >Notes
-            <span style="color: var(--app-text-muted); font-weight: 400">(optional)</span></label
+            >Notater
+            <span style="color: var(--app-text-muted); font-weight: 400">(valgfrit)</span></label
           >
           <Textarea v-model="editForm.notes" rows="2" class="w-full" auto-resize />
         </div>
       </div>
       <template #footer>
-        <Button label="Cancel" text @click="editDialogVisible = false" />
-        <Button label="Save" icon="pi pi-check" :loading="editSaving" @click="saveEdit" />
+        <Button label="Annuller" text @click="editDialogVisible = false" />
+        <Button label="Gem" icon="pi pi-check" :loading="editSaving" @click="saveEdit" />
       </template>
     </Dialog>
 
     <!-- Delete Confirm Dialog -->
     <Dialog
       v-model:visible="showDeleteDialog"
-      header="Delete Album"
+      header="Slet album"
       modal
       :style="{ width: '380px' }"
     >
       <p style="margin: 0">
-        Remove <strong>{{ confirmDelete?.title }}</strong> from your collection?
+        Fjern <strong>{{ confirmDelete?.title }}</strong> fra din samling?
       </p>
       <template #footer>
-        <Button label="Cancel" text @click="confirmDelete = null" />
+        <Button label="Annuller" text @click="confirmDelete = null" />
         <Button
-          label="Delete"
+          label="Slet"
           icon="pi pi-trash"
           severity="danger"
           @click="doDelete(confirmDelete!)"

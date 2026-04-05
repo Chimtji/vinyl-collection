@@ -73,6 +73,16 @@ function toVinylpladenSlug(s: string) {
     .replace(/^-|-$/g, '')
 }
 
+function stripEditionWords(title: string): string {
+  return title
+    .replace(
+      /\s*[\(\[]\s*(deluxe|explicit|clean|remastered?|anniversary|expanded|special|bonus|standard|platinum|diamond|collectors?|definitive|ultimate|complete|re-?issue|re-?release|re-?master|limited|super|acoustic|unplugged|mono|stereo)\s*(edition|version|tracks?|mix)?\s*[\)\]]/gi,
+      '',
+    )
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 const vinylpladenUrl = computed(() => {
   const artist = displayArtist.value
   const title = displayTitle.value
@@ -81,6 +91,7 @@ const vinylpladenUrl = computed(() => {
 })
 
 const vinylpladenPrice = ref<string | null>(null)
+const vinylpladenActiveUrl = ref<string | null>(null)
 const vinylpladenPriceLoading = ref(false)
 
 watch(
@@ -88,12 +99,26 @@ watch(
   async (url) => {
     if (!url) return
     vinylpladenPrice.value = null
+    vinylpladenActiveUrl.value = url
     vinylpladenPriceLoading.value = true
     try {
       const result = await $fetch<{ price: string | null }>(
         `/api/vinylpladen/price?url=${encodeURIComponent(url)}`,
       )
-      vinylpladenPrice.value = result.price
+      if (result.price !== null) {
+        vinylpladenPrice.value = result.price
+        vinylpladenActiveUrl.value = url
+      } else {
+        const strippedTitle = stripEditionWords(displayTitle.value)
+        if (strippedTitle !== displayTitle.value) {
+          const fallbackUrl = `https://vinylpladen.dk/vinyl/${toVinylpladenSlug(displayArtist.value)}/${toVinylpladenSlug(strippedTitle)}-LP`
+          const fallback = await $fetch<{ price: string | null }>(
+            `/api/vinylpladen/price?url=${encodeURIComponent(fallbackUrl)}`,
+          )
+          vinylpladenPrice.value = fallback.price
+          if (fallback.price !== null) vinylpladenActiveUrl.value = fallbackUrl
+        }
+      }
     } catch {
       vinylpladenPrice.value = null
     } finally {
@@ -172,7 +197,7 @@ async function addToCollection() {
   <div>
     <!-- Back -->
     <div style="margin-bottom: 1.5rem">
-      <Button text icon="pi pi-arrow-left" label="Back" @click="router.back()" />
+      <Button text icon="pi pi-arrow-left" label="Tilbage" @click="router.back()" />
     </div>
 
     <!-- Loading -->
@@ -183,7 +208,7 @@ async function addToCollection() {
     <!-- Not found -->
     <div v-else-if="!itunesAlbum" class="empty-state">
       <div class="empty-state-icon"><i class="pi pi-exclamation-triangle" /></div>
-      <p class="empty-state-title">Album not found</p>
+      <p class="empty-state-title">Album ikke fundet</p>
     </div>
 
     <template v-else>
@@ -228,7 +253,7 @@ async function addToCollection() {
                   wishlistPending ? 'pi-spin pi-spinner' : wishlisted ? 'pi-heart-fill' : 'pi-heart'
                 "
               />
-              {{ wishlisted ? 'Wishlisted' : 'Add to wishlist' }}
+              {{ wishlisted ? 'På ønskeliste' : 'Tilføj til ønskeliste' }}
             </button>
 
             <!-- Add / In collection — combined badge button -->
@@ -240,7 +265,7 @@ async function addToCollection() {
               @click="addToCollection"
             >
               <i class="pi" :class="adding ? 'pi-spin pi-spinner' : 'pi-plus'" />
-              {{ adding ? 'Adding…' : 'Add to collection' }}
+              {{ adding ? 'Tilføjer…' : 'Tilføj til samling' }}
             </button>
             <NuxtLink
               v-else
@@ -248,8 +273,8 @@ async function addToCollection() {
               style="text-decoration: none; margin-bottom: 0"
             >
               <button class="album-type-badge collection-action-badge" style="margin-bottom: 0">
-                <span class="cab-default"><i class="pi pi-check" /> In my collection</span>
-                <span class="cab-hover"><i class="pi pi-arrow-right" /> Go to album</span>
+                <span class="cab-default"><i class="pi pi-check" /> I min samling</span>
+                <span class="cab-hover"><i class="pi pi-arrow-right" /> Gå til album</span>
               </button>
             </NuxtLink>
           </div>
@@ -272,7 +297,7 @@ async function addToCollection() {
             </span>
             <span v-if="tracks.length" class="album-stat">
               <i class="pi pi-list" />
-              {{ tracks.length }} tracks
+              {{ tracks.length }} spor
             </span>
             <span v-if="displayGenre" class="album-stat">
               <i class="pi pi-tag" />
@@ -297,7 +322,7 @@ async function addToCollection() {
             <!-- Vinylpladen -->
             <a
               v-if="vinylpladenUrl"
-              :href="vinylpladenUrl"
+              :href="vinylpladenActiveUrl ?? vinylpladenUrl"
               target="_blank"
               rel="noopener noreferrer"
               class="vinylpladen-badge"
@@ -353,7 +378,7 @@ async function addToCollection() {
                   />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
-                Not on Discogs
+                Ikke på Discogs
               </span>
             </div>
           </div>
@@ -368,7 +393,7 @@ async function addToCollection() {
                 {{ discogsRelease.community.have.toLocaleString() }}
               </p>
               <p style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.5); margin: 0.15rem 0 0">
-                Have
+                Har
               </p>
             </div>
             <div style="text-align: center">
@@ -376,7 +401,7 @@ async function addToCollection() {
                 {{ discogsRelease.community.want.toLocaleString() }}
               </p>
               <p style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.5); margin: 0.15rem 0 0">
-                Want
+                Vil have
               </p>
             </div>
           </div>
@@ -387,7 +412,7 @@ async function addToCollection() {
       <div v-if="tracks.length > 0">
         <h2 class="section-title">
           <i class="pi pi-list" style="color: var(--p-primary-500)" />
-          Tracks
+          Spor
           <span class="title-count">{{ tracks.length }}</span>
         </h2>
         <TrackList :tracks="tracks" />
@@ -397,7 +422,7 @@ async function addToCollection() {
       <div v-if="wikiSummary" class="album-wiki">
         <h2 class="section-title">
           <i class="pi pi-book" style="color: var(--p-primary-500)" />
-          About
+          Om
         </h2>
         <p class="album-wiki-text">{{ wikiSummary.extract }}</p>
         <a
@@ -406,7 +431,7 @@ async function addToCollection() {
           rel="noopener noreferrer"
           class="album-wiki-link"
         >
-          Read more on Wikipedia
+          Læs mere på Wikipedia
           <i class="pi pi-external-link" style="font-size: 0.7rem" />
         </a>
       </div>

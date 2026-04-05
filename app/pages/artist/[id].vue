@@ -43,23 +43,12 @@ onMounted(async () => {
     try {
       const albums = await getArtistAlbums(artistId)
 
-      // Deduplicate: strip edition/version qualifiers then keep most complete copy
-      const normalize = (name: string) =>
-        name
-          .toLowerCase()
-          .replace(
-            /\s*[\(\[]\s*(deluxe|explicit|clean|remastered?|anniversary|expanded|special|bonus|standard|platinum|diamond|collectors?|definitive|ultimate|complete|re-?issue|re-?release|re-?master)\s*(edition|version|tracks?)?\s*[\)\]]/gi,
-            '',
-          )
-          .replace(/\s*-\s*(ep|single|live)\s*$/i, '')
-          .replace(/\s+/g, ' ')
-          .trim()
-
+      // Deduplicate only truly identical entries (same name, same collectionType)
+      // "Back to Black" and "Back to Black (Deluxe Edition)" are different keys and both show.
       const seen = new Map<string, ItunesAlbum>()
       for (const album of albums) {
-        const key = normalize(album.collectionName)
+        const key = album.collectionName.toLowerCase().trim()
         const existing = seen.get(key)
-        // Keep the release with more tracks (usually the most complete edition)
         if (!existing || album.trackCount > existing.trackCount) {
           seen.set(key, album)
         }
@@ -92,7 +81,11 @@ function resolveType(album: ItunesAlbum): string {
   if (/\s-\s*single\s*$/i.test(name)) return 'Single'
 
   // Live album detection
-  if (/\blive\s+(at|in|from|on)\b/i.test(name) || /\bin\s+concert\b/i.test(name))
+  if (
+    /\blive\s+(at|in|from|on)\b/i.test(name) ||
+    /\bin\s+concert\b/i.test(name) ||
+    /[\(\[]live[\)\]]/i.test(name)
+  )
     return 'Live Album'
 
   // Remix detection
@@ -108,7 +101,7 @@ function resolveType(album: ItunesAlbum): string {
 
   // Compilation/greatest hits detection
   if (
-    /\b(greatest\s+hits?|best\s+of|the\s+collection|anthology|essential|hits?\s+collection|complete\s+collection|collection|itunes|definitive\s+collection|rarities|b-sides|vault|treasury|anniversary|edition|vol\s+\d|volume\s+\d)\b/i.test(
+    /\b(greatest\s+hits?|best\s+of|the\s+collection|anthology|hits?\s+collection|complete\s+collection|itunes|definitive\s+collection|rarities|b-sides|vault|treasury|vol\s+\d|volume\s+\d)\b/i.test(
       name,
     ) ||
     /\bvol\.\s*\d/i.test(name)
@@ -168,7 +161,7 @@ function goToAlbum(album: ItunesAlbum) {
   <div>
     <!-- Back button -->
     <div style="margin-bottom: 1.5rem">
-      <Button text icon="pi pi-arrow-left" label="Back" @click="router.back()" />
+      <Button text icon="pi pi-arrow-left" label="Tilbage" @click="router.back()" />
     </div>
 
     <!-- Artist Hero -->
@@ -178,13 +171,13 @@ function goToAlbum(album: ItunesAlbum) {
       </div>
       <div>
         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem">
-          <Badge value="Artist" severity="secondary" />
+          <Badge value="Kunstner" severity="secondary" />
         </div>
         <h1 class="artist-hero-name">{{ artistNameParam }}</h1>
-        <p v-if="loading" style="color: rgba(255, 255, 255, 0.5)">Loading discography…</p>
+        <p v-if="loading" style="color: rgba(255, 255, 255, 0.5)">Henter diskografi…</p>
         <p v-else class="artist-hero-genre">
-          {{ itunesAlbums.length }} release{{ itunesAlbums.length !== 1 ? 's' : '' }} ·
-          {{ inCollectionCount }} in your collection
+          {{ itunesAlbums.length }} udgivelse{{ itunesAlbums.length !== 1 ? 'r' : '' }} ·
+          {{ inCollectionCount }} i din samling
         </p>
       </div>
     </div>
@@ -197,8 +190,8 @@ function goToAlbum(album: ItunesAlbum) {
     <template v-else>
       <div v-if="itunesAlbums.length === 0" class="empty-state">
         <div class="empty-state-icon"><i class="pi pi-images" /></div>
-        <p class="empty-state-title">No releases found</p>
-        <p class="empty-state-text">Couldn't find this artist's discography on iTunes</p>
+        <p class="empty-state-title">Ingen udgivelser fundet</p>
+        <p class="empty-state-text">Kunne ikke finde denne kunstners diskografi på iTunes</p>
       </div>
 
       <template v-else>
@@ -237,17 +230,17 @@ function goToAlbum(album: ItunesAlbum) {
               type === 'Album'
                 ? 'Albums'
                 : type === 'EP'
-                  ? 'EPs'
+                  ? "EP'er"
                   : type === 'Single'
-                    ? 'Singles'
+                    ? 'Singler'
                     : type === 'Remix'
                       ? 'Remixes'
                       : type === 'Compilation'
-                        ? 'Compilations'
+                        ? 'Kompilationer'
                         : type === 'Soundtrack'
                           ? 'Soundtracks'
                           : type === 'Live Album'
-                            ? 'Live Albums'
+                            ? 'Live albums'
                             : type + 's'
             }}
             <span class="title-count">{{ albums.length }}</span>

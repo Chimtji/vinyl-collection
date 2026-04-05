@@ -92,6 +92,16 @@ function toVinylpladenSlug(s: string) {
     .replace(/^-|-$/g, '')
 }
 
+function stripEditionWords(title: string): string {
+  return title
+    .replace(
+      /\s*[\(\[]\s*(deluxe|explicit|clean|remastered?|anniversary|expanded|special|bonus|standard|platinum|diamond|collectors?|definitive|ultimate|complete|re-?issue|re-?release|re-?master|limited|super|acoustic|unplugged|mono|stereo)\s*(edition|version|tracks?|mix)?\s*[\)\]]/gi,
+      '',
+    )
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 const vinylpladenUrl = computed(() => {
   const artist = displayArtist.value
   const title = displayTitle.value
@@ -100,6 +110,7 @@ const vinylpladenUrl = computed(() => {
 })
 
 const vinylpladenPrice = ref<string | null>(null)
+const vinylpladenActiveUrl = ref<string | null>(null)
 const vinylpladenPriceLoading = ref(false)
 
 watch(
@@ -107,12 +118,26 @@ watch(
   async (url) => {
     if (!url) return
     vinylpladenPrice.value = null
+    vinylpladenActiveUrl.value = url
     vinylpladenPriceLoading.value = true
     try {
       const result = await $fetch<{ price: string | null }>(
         `/api/vinylpladen/price?url=${encodeURIComponent(url)}`,
       )
-      vinylpladenPrice.value = result.price
+      if (result.price !== null) {
+        vinylpladenPrice.value = result.price
+        vinylpladenActiveUrl.value = url
+      } else {
+        const strippedTitle = stripEditionWords(displayTitle.value)
+        if (strippedTitle !== displayTitle.value) {
+          const fallbackUrl = `https://vinylpladen.dk/vinyl/${toVinylpladenSlug(displayArtist.value)}/${toVinylpladenSlug(strippedTitle)}-LP`
+          const fallback = await $fetch<{ price: string | null }>(
+            `/api/vinylpladen/price?url=${encodeURIComponent(fallbackUrl)}`,
+          )
+          vinylpladenPrice.value = fallback.price
+          if (fallback.price !== null) vinylpladenActiveUrl.value = fallbackUrl
+        }
+      }
     } catch {
       vinylpladenPrice.value = null
     } finally {
@@ -152,13 +177,13 @@ async function removeFromCollection() {
   <div>
     <!-- Back -->
     <div style="margin-bottom: 1.5rem">
-      <Button text icon="pi pi-arrow-left" label="Back" @click="router.back()" />
+      <Button text icon="pi pi-arrow-left" label="Tilbage" @click="router.back()" />
     </div>
 
     <!-- Album not found -->
     <div v-if="localError" class="empty-state">
       <div class="empty-state-icon"><i class="pi pi-exclamation-triangle" /></div>
-      <p class="empty-state-title">Album not found</p>
+      <p class="empty-state-title">Album ikke fundet</p>
     </div>
 
     <template v-else-if="localAlbum">
@@ -192,8 +217,8 @@ async function removeFromCollection() {
               style="margin-bottom: 0"
               @click="confirmRemove = true"
             >
-              <span class="cab-default"><i class="pi pi-check" /> In my collection</span>
-              <span class="cab-hover"><i class="pi pi-minus-circle" /> Remove</span>
+              <span class="cab-default"><i class="pi pi-check" /> I min samling</span>
+              <span class="cab-hover"><i class="pi pi-minus-circle" /> Fjern</span>
             </button>
           </div>
 
@@ -217,7 +242,7 @@ async function removeFromCollection() {
             </span>
             <span v-if="tracks.length" class="album-stat">
               <i class="pi pi-list" />
-              {{ tracks.length }} tracks
+              {{ tracks.length }} spor
             </span>
             <span v-if="displayGenre" class="album-stat">
               <i class="pi pi-tag" />
@@ -242,7 +267,7 @@ async function removeFromCollection() {
             <!-- Vinylpladen -->
             <a
               v-if="vinylpladenUrl"
-              :href="vinylpladenUrl"
+              :href="vinylpladenActiveUrl ?? vinylpladenUrl"
               target="_blank"
               rel="noopener noreferrer"
               class="vinylpladen-badge"
@@ -298,7 +323,7 @@ async function removeFromCollection() {
                   />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
-                Not on Discogs
+                Ikke på Discogs
               </span>
             </div>
           </div>
@@ -313,7 +338,7 @@ async function removeFromCollection() {
                 {{ discogsRelease.community.have.toLocaleString() }}
               </p>
               <p style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.5); margin: 0.15rem 0 0">
-                Have
+                Har
               </p>
             </div>
             <div style="text-align: center">
@@ -321,7 +346,7 @@ async function removeFromCollection() {
                 {{ discogsRelease.community.want.toLocaleString() }}
               </p>
               <p style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.5); margin: 0.15rem 0 0">
-                Want
+                Vil have
               </p>
             </div>
           </div>
@@ -338,16 +363,16 @@ async function removeFromCollection() {
         <div v-if="tracks.length > 0">
           <h2 class="section-title">
             <i class="pi pi-list" style="color: var(--p-primary-500)" />
-            Tracks
+            Spor
             <span class="title-count">{{ tracks.length }}</span>
           </h2>
           <TrackList :tracks="tracks" />
         </div>
         <div v-else-if="!itunesId" class="empty-state" style="padding: 2rem 0">
           <div class="empty-state-icon" style="font-size: 2rem"><i class="pi pi-music" /></div>
-          <p class="empty-state-title">No track data available</p>
+          <p class="empty-state-title">Ingen spor tilgængelige</p>
           <p class="empty-state-text" style="max-width: 320px">
-            This album wasn’t matched to iTunes. Search for it to link track data.
+            Dette album blev ikke matchet med iTunes. Søg for at linke sporinformation.
           </p>
         </div>
 
@@ -355,7 +380,7 @@ async function removeFromCollection() {
         <div v-if="wikiSummary" class="album-wiki">
           <h2 class="section-title">
             <i class="pi pi-book" style="color: var(--p-primary-500)" />
-            About
+            Om
           </h2>
           <p class="album-wiki-text">{{ wikiSummary.extract }}</p>
           <a
@@ -364,7 +389,7 @@ async function removeFromCollection() {
             rel="noopener noreferrer"
             class="album-wiki-link"
           >
-            Read more on Wikipedia
+            Læs mere på Wikipedia
             <i class="pi pi-external-link" style="font-size: 0.7rem" />
           </a>
         </div>
@@ -374,21 +399,16 @@ async function removeFromCollection() {
     <!-- Remove from collection confirm -->
     <Dialog
       v-model:visible="confirmRemove"
-      header="Remove from collection"
+      header="Fjern fra samling"
       modal
       :style="{ width: '360px' }"
     >
       <p style="margin: 0">
-        Remove <strong>{{ displayTitle }}</strong> from your collection?
+        Fjern <strong>{{ displayTitle }}</strong> fra din samling?
       </p>
       <template #footer>
-        <Button label="Cancel" text @click="confirmRemove = false" />
-        <Button
-          label="Remove"
-          severity="danger"
-          :loading="removing"
-          @click="removeFromCollection"
-        />
+        <Button label="Annuller" text @click="confirmRemove = false" />
+        <Button label="Fjern" severity="danger" :loading="removing" @click="removeFromCollection" />
       </template>
     </Dialog>
   </div>

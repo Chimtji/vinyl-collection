@@ -2,7 +2,7 @@
 import type { WishlistItem } from '~/composables/useWishlist'
 
 definePageMeta({ ssr: false })
-useSeoMeta({ title: 'Wishlist — Vinyl Collection' })
+useSeoMeta({ title: 'Ønskeliste — Vinylsamling' })
 
 const router = useRouter()
 const { items, loading, fetchWishlist, removeFromWishlist, updateWishlistItem, addToWishlist } =
@@ -20,7 +20,7 @@ const sortDir = ref<'desc' | 'asc'>('desc')
 const listView = ref(false)
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 }
-const PRIORITY_LABELS = { high: 'High', medium: 'Medium', low: 'Low' }
+const PRIORITY_LABELS = { high: 'Høj', medium: 'Medium', low: 'Lav' }
 
 const filtered = computed(() => {
   let result = items.value
@@ -100,6 +100,29 @@ async function saveEdit() {
   }
 }
 
+// ── Share link ───────────────────────────────────────────
+const shareCopied = ref(false)
+let shareCopiedTimer: ReturnType<typeof setTimeout> | null = null
+
+async function copyShareLink() {
+  const url = `${window.location.origin}/wishlist/share`
+  try {
+    await navigator.clipboard.writeText(url)
+  } catch {
+    const el = document.createElement('input')
+    el.value = url
+    document.body.appendChild(el)
+    el.select()
+    document.execCommand('copy')
+    document.body.removeChild(el)
+  }
+  shareCopied.value = true
+  if (shareCopiedTimer) clearTimeout(shareCopiedTimer)
+  shareCopiedTimer = setTimeout(() => {
+    shareCopied.value = false
+  }, 2500)
+}
+
 // ── Move to collection ────────────────────────────────────
 const movingId = ref<string | null>(null)
 
@@ -132,15 +155,23 @@ function artworkSrc(item: WishlistItem) {
     <!-- Page header -->
     <div class="collection-main-header" style="margin-bottom: 1.5rem">
       <div>
-        <h2 class="collection-main-title" style="margin: 0">Wishlist</h2>
+        <h2 class="collection-main-title" style="margin: 0">Ønskeliste</h2>
         <p style="font-size: 0.8rem; color: var(--app-text-muted); margin: 0.15rem 0 0">
-          {{ items.length }} {{ items.length === 1 ? 'album' : 'albums' }} you want
+          {{ items.length }} {{ items.length === 1 ? 'album' : 'albums' }} du ønsker
         </p>
       </div>
       <div class="collection-main-controls">
+        <Button
+          :icon="shareCopied ? 'pi pi-check' : 'pi pi-share-alt'"
+          :label="shareCopied ? 'Kopieret!' : 'Del'"
+          size="small"
+          :severity="shareCopied ? 'success' : 'secondary'"
+          outlined
+          @click="copyShareLink"
+        />
         <InputText
           v-model="search"
-          placeholder="Filter…"
+          placeholder="Filtrer…"
           size="small"
           class="collection-search-input"
         />
@@ -148,10 +179,10 @@ function artworkSrc(item: WishlistItem) {
         <Select
           v-model="sortBy"
           :options="[
-            { label: 'Date added', value: 'addedAt' },
-            { label: 'Title', value: 'title' },
-            { label: 'Artist', value: 'artist' },
-            { label: 'Year', value: 'year' },
+            { label: 'Tilføjet dato', value: 'addedAt' },
+            { label: 'Titel', value: 'title' },
+            { label: 'Kunstner', value: 'artist' },
+            { label: 'År', value: 'year' },
           ]"
           option-label="label"
           option-value="value"
@@ -160,7 +191,7 @@ function artworkSrc(item: WishlistItem) {
         />
         <button
           class="view-toggle-btn"
-          :title="sortDir === 'desc' ? 'Descending' : 'Ascending'"
+          :title="sortDir === 'desc' ? 'Faldende' : 'Stigende'"
           @click="sortDir = sortDir === 'desc' ? 'asc' : 'desc'"
         >
           <i :class="sortDir === 'desc' ? 'pi pi-sort-amount-down' : 'pi pi-sort-amount-up-alt'" />
@@ -169,7 +200,7 @@ function artworkSrc(item: WishlistItem) {
           <button
             class="view-toggle-btn"
             :class="{ active: !listView }"
-            title="Grid view"
+            title="Gittervisning"
             @click="listView = false"
           >
             <i class="pi pi-th-large" />
@@ -177,7 +208,7 @@ function artworkSrc(item: WishlistItem) {
           <button
             class="view-toggle-btn"
             :class="{ active: listView }"
-            title="List view"
+            title="Listevisning"
             @click="listView = true"
           >
             <i class="pi pi-list" />
@@ -196,7 +227,7 @@ function artworkSrc(item: WishlistItem) {
         @click="priorityFilter = p"
       >
         <span v-if="p !== 'all'" class="priority-dot" :class="`priority-dot--${p}`" />
-        {{ p === 'all' ? 'All' : PRIORITY_LABELS[p] }}
+        {{ p === 'all' ? 'Alle' : PRIORITY_LABELS[p] }}
         <span class="wishlist-tab-count">{{ countByPriority[p] }}</span>
       </button>
     </div>
@@ -209,15 +240,15 @@ function artworkSrc(item: WishlistItem) {
     <!-- Empty state -->
     <div v-else-if="items.length === 0" class="empty-state">
       <div class="empty-state-icon"><i class="pi pi-heart" /></div>
-      <p class="empty-state-title">Your wishlist is empty</p>
-      <p class="empty-state-text">Search for albums and add them to your wishlist</p>
+      <p class="empty-state-title">Din ønskeliste er tom</p>
+      <p class="empty-state-text">Søg efter albums og tilføj dem til din ønskeliste</p>
       <NuxtLink to="/search">
-        <Button icon="pi pi-search" label="Search albums" size="small" style="margin-top: 1rem" />
+        <Button icon="pi pi-search" label="Søg albums" size="small" style="margin-top: 1rem" />
       </NuxtLink>
     </div>
 
     <div v-else-if="filtered.length === 0" class="empty-state">
-      <p class="empty-state-title">No matches</p>
+      <p class="empty-state-title">Ingen matches</p>
     </div>
 
     <!-- Grid view -->
@@ -251,7 +282,7 @@ function artworkSrc(item: WishlistItem) {
                 icon="pi pi-plus"
                 size="small"
                 rounded
-                title="Add to collection"
+                title="Tilføj til samling"
                 :loading="movingId === item.id"
                 @click="moveToCollection(item)"
               />
@@ -259,7 +290,7 @@ function artworkSrc(item: WishlistItem) {
                 icon="pi pi-pencil"
                 size="small"
                 rounded
-                title="Edit notes / priority"
+                title="Rediger noter / prioritet"
                 @click="openEdit(item)"
               />
               <Button
@@ -267,7 +298,7 @@ function artworkSrc(item: WishlistItem) {
                 size="small"
                 rounded
                 severity="danger"
-                title="Remove from wishlist"
+                title="Fjern fra ønskeliste"
                 @click="confirmDelete = item"
               />
             </div>
@@ -317,7 +348,7 @@ function artworkSrc(item: WishlistItem) {
               text
               rounded
               size="small"
-              title="Add to collection"
+              title="Tilføj til samling"
               :loading="movingId === item.id"
               @click="moveToCollection(item)"
             />
@@ -326,7 +357,7 @@ function artworkSrc(item: WishlistItem) {
               text
               rounded
               size="small"
-              title="Edit"
+              title="Rediger"
               @click="openEdit(item)"
             />
             <Button
@@ -335,7 +366,7 @@ function artworkSrc(item: WishlistItem) {
               rounded
               size="small"
               severity="danger"
-              title="Remove"
+              title="Fjern"
               @click="confirmDelete = item"
             />
           </div>
@@ -347,7 +378,7 @@ function artworkSrc(item: WishlistItem) {
     <!-- Edit dialog -->
     <Dialog
       :visible="!!editItem"
-      header="Edit Wishlist Item"
+      header="Rediger ønskelistepunkt"
       modal
       :style="{ width: '420px' }"
       @update:visible="
@@ -358,7 +389,7 @@ function artworkSrc(item: WishlistItem) {
     >
       <div v-if="editItem" class="add-dialog-body">
         <div class="form-field">
-          <label>Priority</label>
+          <label>Prioritet</label>
           <div class="wishlist-priority-select">
             <button
               v-for="p in ['high', 'medium', 'low'] as const"
@@ -374,28 +405,28 @@ function artworkSrc(item: WishlistItem) {
         </div>
         <div class="form-field">
           <label
-            >Notes
-            <span style="color: var(--app-text-muted); font-weight: 400">(optional)</span></label
+            >Notater
+            <span style="color: var(--app-text-muted); font-weight: 400">(valgfrit)</span></label
           >
           <Textarea
             v-model="editForm.notes"
             rows="2"
             class="w-full"
             auto-resize
-            placeholder="Why do you want this?"
+            placeholder="Hvorfor vil du have dette?"
           />
         </div>
       </div>
       <template #footer>
-        <Button label="Cancel" text @click="editItem = null" />
-        <Button label="Save" icon="pi pi-check" :loading="editSaving" @click="saveEdit" />
+        <Button label="Annuller" text @click="editItem = null" />
+        <Button label="Gem" icon="pi pi-check" :loading="editSaving" @click="saveEdit" />
       </template>
     </Dialog>
 
     <!-- Remove confirm dialog -->
     <Dialog
       :visible="!!confirmDelete"
-      header="Remove from Wishlist"
+      header="Fjern fra ønskeliste"
       modal
       :style="{ width: '380px' }"
       @update:visible="
@@ -405,12 +436,12 @@ function artworkSrc(item: WishlistItem) {
       "
     >
       <p style="margin: 0">
-        Remove <strong>{{ confirmDelete?.title }}</strong> from your wishlist?
+        Fjern <strong>{{ confirmDelete?.title }}</strong> fra din ønskeliste?
       </p>
       <template #footer>
-        <Button label="Cancel" text @click="confirmDelete = null" />
+        <Button label="Annuller" text @click="confirmDelete = null" />
         <Button
-          label="Remove"
+          label="Fjern"
           icon="pi pi-trash"
           severity="danger"
           :loading="deleting"

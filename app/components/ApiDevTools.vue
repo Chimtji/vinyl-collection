@@ -105,14 +105,14 @@ function statusIcon(entry: ApiLogEntry): string {
       <div class="devtools-header">
         <div style="display: flex; align-items: center; gap: 0.6rem">
           <i class="pi pi-code" style="color: var(--p-primary-400)" />
-          <span class="devtools-title">API Logs</span>
+          <span class="devtools-title">API-log</span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.5rem">
           <Button
             text
             size="small"
             icon="pi pi-trash"
-            label="Clear"
+            label="Ryd"
             style="font-size: 0.75rem; padding: 0.25rem 0.5rem; color: rgba(255, 255, 255, 0.4)"
             @click="clearLogs"
           />
@@ -144,7 +144,7 @@ function statusIcon(entry: ApiLogEntry): string {
       <div class="devtools-list">
         <div v-if="filteredLogs.length === 0" class="devtools-empty">
           <i class="pi pi-inbox" style="font-size: 2rem; opacity: 0.3" />
-          <p>No requests yet</p>
+          <p>Ingen forespørgsler endnu</p>
         </div>
 
         <div
@@ -195,14 +195,14 @@ function statusIcon(entry: ApiLogEntry): string {
                 :class="{ active: activeTab === 'params' }"
                 @click="activeTab = 'params'"
               >
-                Params
+                Parametre
               </button>
               <button
                 class="devtools-detail-tab"
                 :class="{ active: activeTab === 'response' }"
                 @click="activeTab = 'response'"
               >
-                {{ entry.status === 'error' ? 'Error' : 'Response' }}
+                >{{ entry.status === 'error' ? 'Fejl' : 'Svar' }}
               </button>
               <!-- Full URL chip -->
               <span class="devtools-full-url" :title="entry.url">{{ entry.url }}</span>
@@ -217,7 +217,7 @@ function statusIcon(entry: ApiLogEntry): string {
             }}</pre>
 
             <pre v-else-if="entry.status === 'pending'" class="devtools-json devtools-json--muted">
-Waiting for response…</pre
+>Venter på svar…</pre
             >
 
             <pre v-else class="devtools-json">{{ formatJson(entry.response) }}</pre>

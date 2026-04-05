@@ -2,12 +2,11 @@
 import type { ItunesArtist, ItunesAlbum, ItunesTrack } from '~/composables/useAppleMusic'
 import type { CollectionAlbum } from '~/composables/useCollection'
 
-useSeoMeta({ title: 'Search Music — Vinyl Collection' })
+useSeoMeta({ title: 'Søg musik — Vinylsamling' })
 
 const router = useRouter()
 const route = useRoute()
-const { searchArtists, searchAll, formatDuration, formatReleaseYear, getArtworkUrl } =
-  useAppleMusic()
+const { searchCombined, formatDuration, formatReleaseYear, getArtworkUrl } = useAppleMusic()
 const { addAlbum, albums: collectionAlbums, fetchCollection } = useCollection()
 const { addToWishlist, removeFromWishlist, isWishlisted, getWishlistItem, fetchWishlist } =
   useWishlist()
@@ -23,9 +22,9 @@ const albums = ref<ItunesAlbum[]>([])
 const songs = ref<ItunesTrack[]>([])
 
 const tabs = computed(() => [
-  { label: `Artists`, icon: 'pi pi-user', count: artists.value.length },
+  { label: `Kunstnere`, icon: 'pi pi-user', count: artists.value.length },
   { label: `Albums`, icon: 'pi pi-images', count: albums.value.length },
-  { label: `Songs`, icon: 'pi pi-music', count: songs.value.length },
+  { label: `Sange`, icon: 'pi pi-music', count: songs.value.length },
 ])
 
 async function doSearch() {
@@ -38,14 +37,10 @@ async function doSearch() {
   await router.replace({ query: { q } })
 
   try {
-    const [artistResults, allResults] = await Promise.all([searchArtists(q), searchAll(q)])
-    artists.value = artistResults
-    albums.value = (allResults as ItunesAlbum[]).filter(
-      (r) => (r as ItunesAlbum).wrapperType === 'collection',
-    )
-    songs.value = (allResults as ItunesTrack[]).filter(
-      (r) => (r as ItunesTrack).wrapperType === 'track',
-    )
+    const results = await searchCombined(q)
+    artists.value = results.artists
+    albums.value = results.albums
+    songs.value = results.songs
     if (artists.value.length > 0) activeTab.value = 0
     else if (albums.value.length > 0) activeTab.value = 1
     else activeTab.value = 2
@@ -61,9 +56,7 @@ function goToArtist(artist: ItunesArtist) {
 }
 
 function goToAlbum(album: ItunesAlbum) {
-  router.push(
-    `/album/${album.collectionId}?name=${encodeURIComponent(album.collectionName)}&artist=${encodeURIComponent(album.artistName)}`,
-  )
+  router.push(`/album/itunes/${album.collectionId}`)
 }
 
 // ── Add to Collection ─────────────────────────────────────
@@ -168,21 +161,21 @@ function quickSearch(genre: string) {
         Apple Music · Discogs
       </div>
       <h1 class="hero-title">
-        Explore the World of<br />
-        <span class="gradient-text">Vinyl &amp; Music</span>
+        Udforsk verden af<br />
+        <span class="gradient-text">Vinyl &amp; Musik</span>
       </h1>
       <p class="hero-subtitle">
-        Search millions of artists, albums, and songs. Add them directly to your vinyl collection.
+        Søg i millioner af kunstnere, albums og sange. Tilføj dem direkte til din vinylsamling.
       </p>
 
       <div class="search-wrapper">
         <div class="search-input-group">
           <InputText
             v-model="searchQuery"
-            placeholder="Search artists, albums, songs…"
+            placeholder="Søg kunstnere, albums, sange…"
             @keyup.enter="doSearch"
           />
-          <Button icon="pi pi-search" label="Search" :loading="loading" @click="doSearch" />
+          <Button icon="pi pi-search" label="Søg" :loading="loading" @click="doSearch" />
         </div>
 
         <!-- Quick-search genre chips — only shown before first search -->
@@ -202,14 +195,14 @@ function quickSearch(genre: string) {
     <!-- Results -->
     <div v-if="loading" class="search-loading">
       <ProgressSpinner stroke-width="3" style="width: 48px; height: 48px" />
-      <p>Searching the universe…</p>
+      <p>Søger i universet…</p>
     </div>
 
     <template v-else-if="hasSearched">
       <div v-if="!artists.length && !albums.length && !songs.length" class="empty-state">
         <div class="empty-state-icon"><i class="pi pi-search" /></div>
-        <p class="empty-state-title">No results found</p>
-        <p class="empty-state-text">Try a different artist or album name</p>
+        <p class="empty-state-title">Ingen resultater fundet</p>
+        <p class="empty-state-text">Prøv et andet kunstner- eller albumnavn</p>
       </div>
 
       <div v-else>
@@ -233,8 +226,8 @@ function quickSearch(genre: string) {
               <div style="padding-top: 1.5rem">
                 <div v-if="artists.length === 0" class="empty-state">
                   <div class="empty-state-icon"><i class="pi pi-user" /></div>
-                  <p class="empty-state-title">No artists found</p>
-                  <p class="empty-state-text">Try the Albums or Songs tabs</p>
+                  <p class="empty-state-title">Ingen kunstnere fundet</p>
+                  <p class="empty-state-text">Prøv fanerne Albums eller Sange</p>
                 </div>
                 <div v-else class="search-artist-grid">
                   <div
@@ -251,7 +244,7 @@ function quickSearch(genre: string) {
                     </div>
                     <div class="search-artist-info">
                       <p class="search-artist-name">{{ artist.artistName }}</p>
-                      <p class="search-artist-genre">{{ artist.primaryGenreName || 'Music' }}</p>
+                      <p class="search-artist-genre">{{ artist.primaryGenreName || 'Musik' }}</p>
                     </div>
                     <i class="pi pi-arrow-right search-artist-arrow" />
                   </div>
@@ -264,8 +257,8 @@ function quickSearch(genre: string) {
               <div style="padding-top: 1.5rem">
                 <div v-if="albums.length === 0" class="empty-state">
                   <div class="empty-state-icon"><i class="pi pi-images" /></div>
-                  <p class="empty-state-title">No albums found</p>
-                  <p class="empty-state-text">Try the Artists or Songs tabs</p>
+                  <p class="empty-state-title">Ingen albums fundet</p>
+                  <p class="empty-state-text">Prøv fanerne Kunstnere eller Sange</p>
                 </div>
                 <div v-else class="crate-grid">
                   <div
@@ -294,14 +287,14 @@ function quickSearch(genre: string) {
                             )
                           "
                           class="search-crate-badge search-crate-badge--owned"
-                          title="In your collection"
+                          title="I din samling"
                         >
                           <i class="pi pi-check" />
                         </div>
                         <div
                           v-else-if="isWishlisted(album.collectionId)"
                           class="search-crate-badge search-crate-badge--wished"
-                          title="On wishlist"
+                          title="På ønskeliste"
                         >
                           <i class="pi pi-heart-fill" />
                         </div>
@@ -321,8 +314,8 @@ function quickSearch(genre: string) {
                             rounded
                             :title="
                               isWishlisted(album.collectionId)
-                                ? 'Remove from wishlist'
-                                : 'Add to wishlist'
+                                ? 'Fjern fra ønskeliste'
+                                : 'Tilføj til ønskeliste'
                             "
                             :loading="wishlistPending === album.collectionId"
                             :class="{ 'btn-wishlisted': isWishlisted(album.collectionId) }"
@@ -337,14 +330,14 @@ function quickSearch(genre: string) {
                             icon="pi pi-plus"
                             size="small"
                             rounded
-                            title="Add to collection"
+                            title="Tilføj til samling"
                             @click="openAddDialog(album)"
                           />
                           <Button
                             icon="pi pi-arrow-right"
                             size="small"
                             rounded
-                            title="View album"
+                            title="Se album"
                             @click.stop="goToAlbum(album)"
                           />
                         </div>
@@ -369,12 +362,12 @@ function quickSearch(genre: string) {
               <div style="padding-top: 1.5rem">
                 <div v-if="songs.length === 0" class="empty-state">
                   <div class="empty-state-icon"><i class="pi pi-music" /></div>
-                  <p class="empty-state-title">No songs found</p>
+                  <p class="empty-state-title">Ingen sange fundet</p>
                 </div>
                 <div v-else class="track-list">
                   <div class="track-list-header">
                     <span style="text-align: center">#</span>
-                    <span>Title</span>
+                    <span>Titel</span>
                     <span><i class="pi pi-clock" /></span>
                   </div>
                   <div
@@ -415,24 +408,24 @@ function quickSearch(genre: string) {
       <div class="search-idle-stats">
         <div class="search-idle-stat">
           <span class="search-idle-stat-num">{{ collectionAlbums.length }}</span>
-          <span class="search-idle-stat-label">in collection</span>
+          <span class="search-idle-stat-label">i samling</span>
         </div>
         <div class="search-idle-divider" />
         <div class="search-idle-stat">
           <i class="pi pi-globe search-idle-stat-icon" />
-          <span class="search-idle-stat-label">Millions of albums available</span>
+          <span class="search-idle-stat-label">Millioner af albums tilgængelige</span>
         </div>
       </div>
       <p class="search-idle-hint">
-        <i class="pi pi-arrow-up" style="font-size: 0.7rem; margin-right: 0.3rem" />Search above or
-        pick a genre to get started
+        <i class="pi pi-arrow-up" style="font-size: 0.7rem; margin-right: 0.3rem" />Søg ovenfor
+        eller vælg en genre for at komme i gang
       </p>
     </div>
 
     <!-- Add to Collection Dialog -->
     <Dialog
       v-model:visible="addDialogVisible"
-      header="Add to Collection"
+      header="Tilføj til samling"
       modal
       :style="{ width: '480px' }"
     >
@@ -446,11 +439,11 @@ function quickSearch(genre: string) {
         </div>
 
         <div class="form-field">
-          <label>Album Title</label>
+          <label>Albumtitel</label>
           <InputText v-model="addForm.title" class="w-full" />
         </div>
         <div class="form-field">
-          <label>Artist</label>
+          <label>Kunstner</label>
           <InputText v-model="addForm.artist" class="w-full" />
         </div>
         <div class="form-row">
@@ -459,23 +452,23 @@ function quickSearch(genre: string) {
             <InputText v-model="addForm.genre" class="w-full" />
           </div>
           <div class="form-field form-field-year">
-            <label>Year</label>
+            <label>År</label>
             <InputNumber v-model="addForm.year" :use-grouping="false" class="w-full" />
           </div>
         </div>
         <div class="form-field">
           <label
-            >Notes
-            <span style="color: var(--app-text-muted); font-weight: 400">(optional)</span></label
+            >Notater
+            <span style="color: var(--app-text-muted); font-weight: 400">(valgfrit)</span></label
           >
           <Textarea v-model="addForm.notes" rows="2" class="w-full" auto-resize />
         </div>
       </div>
 
       <template #footer>
-        <Button label="Cancel" text @click="addDialogVisible = false" />
+        <Button label="Annuller" text @click="addDialogVisible = false" />
         <Button
-          label="Add to Collection"
+          label="Tilføj til samling"
           icon="pi pi-plus"
           :loading="addSaving"
           @click="saveToCollection"

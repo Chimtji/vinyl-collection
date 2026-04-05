@@ -38,7 +38,7 @@ const year = computed(() => {
     </div>
     <div class="card-body">
       <p class="card-title">{{ album.collectionName }}</p>
-      <p class="card-subtitle">{{ year ? year + ' · ' : '' }}{{ album.trackCount }} tracks</p>
+      <p class="card-subtitle">{{ year ? year + ' · ' : '' }}{{ album.trackCount }} spor</p>
     </div>
   </div>
 </template>

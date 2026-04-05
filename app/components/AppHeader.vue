@@ -26,16 +26,16 @@ function toggleDark() {
       </NuxtLink>
 
       <nav style="display: flex; align-items: center; gap: 0.5rem">
-        <NuxtLink to="/" class="header-nav-link">Collection</NuxtLink>
-        <NuxtLink to="/search" class="header-nav-link">Search</NuxtLink>
-        <NuxtLink to="/collection" class="header-nav-link">Manage</NuxtLink>
+        <NuxtLink to="/" class="header-nav-link">Samling</NuxtLink>
+        <NuxtLink to="/search" class="header-nav-link">Søg</NuxtLink>
+        <NuxtLink to="/collection" class="header-nav-link">Administrer</NuxtLink>
       </nav>
       <div style="display: flex; align-items: center; gap: 0.5rem">
         <Button
           text
           rounded
           :icon="isDark ? 'pi pi-sun' : 'pi pi-moon'"
-          :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+          :aria-label="isDark ? 'Skift til lys tilstand' : 'Skift til mørk tilstand'"
           size="small"
           style="color: var(--app-text-muted)"
           @click="toggleDark"

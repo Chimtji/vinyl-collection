@@ -34,7 +34,7 @@ const emit = defineEmits<{
         rounded
         size="small"
         icon="pi pi-pencil"
-        aria-label="Edit"
+        aria-label="Rediger"
         @click.stop="emit('edit', album)"
       />
       <Button
@@ -43,7 +43,7 @@ const emit = defineEmits<{
         size="small"
         icon="pi pi-trash"
         severity="danger"
-        aria-label="Delete"
+        aria-label="Slet"
         @click.stop="emit('delete', album)"
       />
     </div>

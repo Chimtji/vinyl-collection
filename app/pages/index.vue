@@ -2,7 +2,7 @@
 import type { CollectionAlbum } from '~/composables/useCollection'
 
 definePageMeta({ ssr: false })
-useSeoMeta({ title: 'Dashboard — Vinyl Collection' })
+useSeoMeta({ title: 'Overblik — Vinylsamling' })
 
 const router = useRouter()
 const { albums, genres, fetchCollection } = useCollection()
@@ -196,11 +196,11 @@ const showPriceModal = ref(false)
 const cacheAge = computed(() => {
   if (!cachedAt.value) return ''
   const mins = Math.floor((Date.now() - cachedAt.value) / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 1) return 'lige nu'
+  if (mins < 60) return `${mins} min siden`
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
-  return `${Math.floor(hrs / 24)}d ago`
+  if (hrs < 24) return `${hrs} t siden`
+  return `${Math.floor(hrs / 24)} d siden`
 })
 
 function saveValuationCache() {
@@ -328,11 +328,11 @@ function fmtDKK(n: number) {
     <!-- Page header -->
     <div class="dash-header">
       <div>
-        <h1 class="dash-title">Collection Dashboard</h1>
-        <p class="dash-subtitle">An overview of your vinyl collection</p>
+        <h1 class="dash-title">Samlingsoverigt</h1>
+        <p class="dash-subtitle">Et overblik over din vinylsamling</p>
       </div>
       <NuxtLink to="/search">
-        <Button icon="pi pi-plus" label="Add Album" size="small" />
+        <Button icon="pi pi-plus" label="Tilføj album" size="small" />
       </NuxtLink>
     </div>
 
@@ -340,7 +340,7 @@ function fmtDKK(n: number) {
     <div class="dash-stats-row">
       <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(196, 85, 41, 0.12)">
-          <i class="pi pi-th-large" style="color: #C45529" />
+          <i class="pi pi-th-large" style="color: #c45529" />
         </div>
         <div>
           <p class="dash-stat-val">{{ totalAlbums }}</p>
@@ -349,20 +349,20 @@ function fmtDKK(n: number) {
       </div>
       <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(196, 85, 41, 0.08)">
-          <i class="pi pi-user" style="color: #E8845A" />
+          <i class="pi pi-user" style="color: #e8845a" />
         </div>
         <div>
           <p class="dash-stat-val">{{ totalArtists }}</p>
-          <p class="dash-stat-label">Artists</p>
+          <p class="dash-stat-label">Kunstnere</p>
         </div>
       </div>
       <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(122, 158, 138, 0.12)">
-          <i class="pi pi-tag" style="color: #7A9E8A" />
+          <i class="pi pi-tag" style="color: #7a9e8a" />
         </div>
         <div>
           <p class="dash-stat-val">{{ totalGenres }}</p>
-          <p class="dash-stat-label">Genres</p>
+          <p class="dash-stat-label">Genrer</p>
         </div>
       </div>
     </div>
@@ -370,22 +370,22 @@ function fmtDKK(n: number) {
     <!-- Charts: Genre radar · Decade · Top Artists -->
     <div v-if="totalAlbums > 0" class="dash-charts-3col">
       <div class="chart-card">
-        <h3 class="chart-title"><i class="pi pi-chart-pie" /> Genre Breakdown</h3>
+        <h3 class="chart-title"><i class="pi pi-chart-pie" /> Genreoversigt</h3>
         <div class="chart-canvas-wrap">
           <canvas ref="radarCanvas" />
         </div>
       </div>
 
       <div class="chart-card">
-        <h3 class="chart-title"><i class="pi pi-calendar" /> By Decade</h3>
+        <h3 class="chart-title"><i class="pi pi-calendar" /> Efter årti</h3>
         <div class="chart-canvas-wrap">
           <canvas ref="decadeCanvas" />
         </div>
-        <p v-if="oldestYear" class="chart-footnote">Earliest release: {{ oldestYear }}</p>
+        <p v-if="oldestYear" class="chart-footnote">Tidligste udgivelse: {{ oldestYear }}</p>
       </div>
 
       <div class="chart-card">
-        <h3 class="chart-title"><i class="pi pi-users" /> Top Artists</h3>
+        <h3 class="chart-title"><i class="pi pi-users" /> Top kunstnere</h3>
         <div class="chart-canvas-wrap">
           <canvas ref="artistCanvas" />
         </div>
@@ -403,7 +403,7 @@ function fmtDKK(n: number) {
         </div>
         <Button
           v-if="!valuationFetched && !valuationLoading"
-          label="Load Valuation"
+          label="Hent vurdering"
           icon="pi pi-refresh"
           size="small"
           @click="fetchValuation"
@@ -413,7 +413,7 @@ function fmtDKK(n: number) {
           icon="pi pi-refresh"
           size="small"
           text
-          title="Refresh prices"
+          title="Opdater priser"
           @click="fetchValuation"
         />
       </div>
@@ -422,7 +422,7 @@ function fmtDKK(n: number) {
       <div v-if="valuationLoading" class="valuation-loading">
         <ProgressBar :value="valuationProgress" style="height: 6px; margin-bottom: 0.75rem" />
         <p class="valuation-loading-text">
-          Checking prices… {{ priceResults.length }} / {{ totalAlbums }}
+          Tjekker priser… {{ priceResults.length }} / {{ totalAlbums }}
         </p>
       </div>
 
@@ -430,30 +430,30 @@ function fmtDKK(n: number) {
       <template v-else-if="valuationFetched">
         <div class="valuation-summary">
           <div class="valuation-total-block">
-            <p class="valuation-total-label">Estimated total value</p>
+            <p class="valuation-total-label">Anslået samlet værdi</p>
             <p class="valuation-total-val">{{ fmtDKK(totalValue) }}</p>
           </div>
           <div class="valuation-coverage-block">
             <p class="valuation-coverage-label">
-              {{ pricedCount }} / {{ totalAlbums }} albums priced ({{ coveragePct }}%)
+              {{ pricedCount }} / {{ totalAlbums }} albums prissat ({{ coveragePct }}%)
             </p>
             <ProgressBar :value="coveragePct" style="height: 8px; min-width: 160px" />
           </div>
           <div class="valuation-summary-actions">
             <Button
               v-if="pricedAlbums.length"
-              label="View Prices"
+              label="Se priser"
               icon="pi pi-list"
               size="small"
               outlined
               @click="showPriceModal = true"
             />
-            <p v-if="cachedAt" class="valuation-cache-age">Updated {{ cacheAge }}</p>
+            <p v-if="cachedAt" class="valuation-cache-age">Opdateret {{ cacheAge }}</p>
           </div>
         </div>
         <p v-if="pricedCount < totalAlbums" class="valuation-missing">
-          {{ totalAlbums - pricedCount }} album{{ totalAlbums - pricedCount === 1 ? '' : 's' }} not
-          found on Vinylpladen
+          {{ totalAlbums - pricedCount }} album{{ totalAlbums - pricedCount === 1 ? '' : 's' }} ikke
+          fundet på Vinylpladen
         </p>
       </template>
 
@@ -461,8 +461,8 @@ function fmtDKK(n: number) {
       <div v-else class="valuation-idle">
         <i class="pi pi-tag valuation-idle-icon" />
         <p>
-          Click "Load Valuation" to estimate the total value of your collection using current
-          Vinylpladen prices.
+          Klik på &quot;Hent vurdering&quot; for at beregne den samlede værdi af din samling baseret
+          på aktuelle Vinylpladen-priser.
         </p>
       </div>
     </div>
@@ -471,7 +471,7 @@ function fmtDKK(n: number) {
     <Dialog
       v-model:visible="showPriceModal"
       modal
-      header="Album Prices"
+      header="Albumpriser"
       :style="{ width: '620px', maxWidth: '95vw' }"
     >
       <div class="valuation-album-list">
@@ -501,14 +501,14 @@ function fmtDKK(n: number) {
               class="valuation-stock-badge"
               :class="album.inStock ? 'valuation-stock--in' : 'valuation-stock--out'"
             >
-              {{ album.inStock ? 'In stock' : 'Out of stock' }}
+              {{ album.inStock ? 'På lager' : 'Udsolgt' }}
             </span>
           </div>
         </div>
       </div>
       <p v-if="pricedCount < totalAlbums" class="valuation-missing" style="padding: 0 0.25rem">
-        {{ totalAlbums - pricedCount }} album{{ totalAlbums - pricedCount === 1 ? '' : 's' }} not
-        found on Vinylpladen
+        {{ totalAlbums - pricedCount }} album{{ totalAlbums - pricedCount === 1 ? '' : 's' }} ikke
+        fundet på Vinylpladen
       </p>
     </Dialog>
   </div>

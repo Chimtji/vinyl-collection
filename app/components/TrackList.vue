@@ -12,14 +12,10 @@ const { formatDuration } = useAppleMusic()
   <div class="track-list">
     <div class="track-list-header">
       <span style="text-align: center">#</span>
-      <span>Title</span>
+      <span>Titel</span>
       <span><i class="pi pi-clock" /></span>
     </div>
-    <div
-      v-for="track in tracks"
-      :key="track.trackId"
-      class="track-item"
-    >
+    <div v-for="track in tracks" :key="track.trackId" class="track-item">
       <span class="track-number">{{ track.trackNumber }}</span>
       <div class="track-info">
         <p class="track-name">{{ track.trackName }}</p>

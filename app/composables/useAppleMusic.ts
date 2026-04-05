@@ -72,15 +72,25 @@ export interface ItunesSearchResponse {
   results: ItunesResult[]
 }
 
+export interface ItunesSearchAllResponse {
+  artists: ItunesArtist[]
+  albums: ItunesAlbum[]
+  songs: ItunesTrack[]
+}
+
 export function useAppleMusic() {
+  async function searchCombined(term: string): Promise<ItunesSearchAllResponse> {
+    return $fetch<ItunesSearchAllResponse>('/api/itunes/search-all', { query: { term } })
+  }
+
+  // Keep individual helpers for any other callers
   async function searchArtists(term: string): Promise<ItunesArtist[]> {
     const data = await $fetch<ItunesSearchResponse>('/api/itunes/search', {
       query: { term, entity: 'musicArtist', limit: 20 },
     })
-    const artists = (data.results || []).filter(
+    return (data.results || []).filter(
       (r): r is ItunesArtist => (r as ItunesArtist).wrapperType === 'artist',
     )
-    return artists
   }
 
   async function searchAll(term: string): Promise<ItunesResult[]> {
@@ -92,8 +102,7 @@ export function useAppleMusic() {
         query: { term, entity: 'song', limit: 20 },
       }),
     ])
-    const allResults = [...(albumData.results || []), ...(songData.results || [])]
-    return allResults
+    return [...(albumData.results || []), ...(songData.results || [])]
   }
 
   async function getArtistAlbums(artistId: number): Promise<ItunesAlbum[]> {
@@ -140,6 +149,7 @@ export function useAppleMusic() {
   }
 
   return {
+    searchCombined,
     searchArtists,
     searchAll,
     getArtistAlbums,
