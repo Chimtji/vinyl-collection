@@ -57,6 +57,9 @@ export default defineNuxtConfig({
       ],
     },
   },
+  nitro: {
+    preset: 'netlify',
+  },
   modules: ['@nuxt/eslint', '@primevue/nuxt-module'],
   css: ['primeicons/primeicons.css', '~/assets/css/main.css'],
   primevue: {

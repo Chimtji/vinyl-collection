@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const items = readWishlist()
+  const items = await readWishlist()
 
   if (items.some((i) => i.itunesCollectionId === body.itunesCollectionId)) {
     throw createError({ statusCode: 409, message: 'Already on wishlist' })
@@ -30,6 +30,6 @@ export default defineEventHandler(async (event) => {
     addedAt: new Date().toISOString(),
   }
 
-  writeWishlist([...items, item])
+  await writeWishlist([...items, item])
   return item
 })

@@ -22,9 +22,9 @@ export default defineEventHandler(async (event) => {
     addedAt: new Date().toISOString(),
   }
 
-  const collection = readCollection()
+  const collection = await readCollection()
   collection.push(album)
-  writeCollection(collection)
+  await writeCollection(collection)
 
   return album
 })

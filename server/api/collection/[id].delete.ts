@@ -1,7 +1,7 @@
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
 
-  const collection = readCollection()
+  const collection = await readCollection()
   const index = collection.findIndex((a) => a.id === id)
 
   if (index === -1) {
@@ -9,7 +9,7 @@ export default defineEventHandler((event) => {
   }
 
   collection.splice(index, 1)
-  writeCollection(collection)
+  await writeCollection(collection)
 
   return { success: true }
 })

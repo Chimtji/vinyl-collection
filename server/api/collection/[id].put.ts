@@ -2,7 +2,7 @@ export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   const body = await readBody<Record<string, unknown>>(event)
 
-  const collection = readCollection()
+  const collection = await readCollection()
   const index = collection.findIndex((a) => a.id === id)
 
   if (index === -1) {
@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   }
 
   collection[index] = { ...collection[index], ...body, id: id! }
-  writeCollection(collection)
+  await writeCollection(collection)
 
   return collection[index]
 })
