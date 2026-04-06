@@ -63,7 +63,7 @@ export default defineNuxtPlugin(async () => {
 
   netlifyIdentity.on('logout', () => {
     user.value = null
-    navigateTo('/login')
+    netlifyIdentity.open('login')
   })
   ;(window as unknown as Record<string, unknown>).netlifyIdentity = netlifyIdentity
 })
