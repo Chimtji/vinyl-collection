@@ -5,6 +5,14 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# ── SPA fallback ─────────────────────────────────────────────────────────────
+# Return index.html for any path not handled by a Netlify Function so that
+# Vue Router can handle client-side routing correctly.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
 # ── Netlify Identity ─────────────────────────────────────────────────────────
 # Enable Identity for this site in the Netlify dashboard:
 #   Site configuration → Identity → Enable Identity

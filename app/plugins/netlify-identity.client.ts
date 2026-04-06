@@ -2,11 +2,17 @@ import netlifyIdentity from 'netlify-identity-widget'
 import type { AuthUser } from '~/composables/useAuth'
 
 /**
- * Async plugin — Nuxt holds the entire app startup (including the first
- * navigation and middleware run) until this promise resolves. That means
- * auth state is always known before any page component ever mounts.
+ * Synchronous plugin — the app renders immediately. Auth state is resolved
+ * via the `ready` flag in useAuth():
+ *  - While ready=false  → layout shows a loading spinner
+ *  - When ready + not logged in → layout opens the Identity overlay
+ *  - When ready + logged in     → layout shows the app normally
+ *
+ * The `init` event fires very quickly from netlify-identity-widget (reads from
+ * localStorage synchronously, only does a background token refresh network
+ * call). Setting ready there unblocks the layout almost immediately.
  */
-export default defineNuxtPlugin(async () => {
+export default defineNuxtPlugin(() => {
   const { user, ready, authHeaders } = useAuth()
 
   // ── Local development ─────────────────────────────────────────────
@@ -31,33 +37,23 @@ export default defineNuxtPlugin(async () => {
     }
   }
 
-  // Wait for Identity to check localStorage / refresh the stored token.
-  // This promise resolves as soon as on('init') fires (or after 8 s as a
-  // safety fallback). Nuxt will not run middleware or render any page until it
-  // resolves, so isLoggedIn is always accurate on the very first navigation.
-  await new Promise<void>((resolve) => {
-    netlifyIdentity.on('init', (u) => {
-      user.value = (u as AuthUser) ?? null
-      if (u) {
-        netlifyIdentity.close()
-        runMigration()
-      }
-      resolve()
-    })
-
-    netlifyIdentity.init({ logo: false })
-
-    // Safety fallback: if init never fires, unblock as unauthenticated.
-    setTimeout(resolve, 8000)
+  // ── init: fires almost instantly (reads localStorage, no blocking network) ─
+  netlifyIdentity.on('init', (u) => {
+    user.value = (u as AuthUser) ?? null
+    ready.value = true
+    if (u) {
+      netlifyIdentity.close()
+      // Run migration as a background task — no need to await here because
+      // the user was already logged in and the collection will load fresh.
+      runMigration()
+    }
   })
 
-  ready.value = true
-
-  // ── Post-init event handlers ────────────────────────────────────────
-  netlifyIdentity.on('login', (u) => {
+  // ── login: await migration so collection data exists before the page loads ─
+  netlifyIdentity.on('login', async (u) => {
     user.value = u as AuthUser
     netlifyIdentity.close()
-    runMigration()
+    await runMigration()
     navigateTo('/')
   })
 
@@ -65,5 +61,7 @@ export default defineNuxtPlugin(async () => {
     user.value = null
     netlifyIdentity.open('login')
   })
+
+  netlifyIdentity.init({ logo: false })
   ;(window as unknown as Record<string, unknown>).netlifyIdentity = netlifyIdentity
 })
