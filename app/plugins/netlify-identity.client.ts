@@ -1,21 +1,10 @@
 import netlifyIdentity from 'netlify-identity-widget'
 import type { AuthUser } from '~/composables/useAuth'
 
-/**
- * Synchronous plugin — the app renders immediately. Auth state is resolved
- * via the `ready` flag in useAuth():
- *  - While ready=false  → layout shows a loading spinner
- *  - When ready + not logged in → layout opens the Identity overlay
- *  - When ready + logged in     → layout shows the app normally
- *
- * The `init` event fires very quickly from netlify-identity-widget (reads from
- * localStorage synchronously, only does a background token refresh network
- * call). Setting ready there unblocks the layout almost immediately.
- */
 export default defineNuxtPlugin(() => {
   const { user, ready, authHeaders } = useAuth()
 
-  // ── Local development ─────────────────────────────────────────────
+  // ── Local development: use a mock user, skip the identity widget ──────
   if (import.meta.dev) {
     user.value = {
       id: 'local-dev-user',
@@ -37,19 +26,15 @@ export default defineNuxtPlugin(() => {
     }
   }
 
-  // ── init: fires almost instantly (reads localStorage, no blocking network) ─
   netlifyIdentity.on('init', (u) => {
     user.value = (u as AuthUser) ?? null
     ready.value = true
     if (u) {
       netlifyIdentity.close()
-      // Run migration as a background task — no need to await here because
-      // the user was already logged in and the collection will load fresh.
       runMigration()
     }
   })
 
-  // ── login: await migration so collection data exists before the page loads ─
   netlifyIdentity.on('login', async (u) => {
     user.value = u as AuthUser
     netlifyIdentity.close()
@@ -63,5 +48,11 @@ export default defineNuxtPlugin(() => {
   })
 
   netlifyIdentity.init({ logo: false })
+
+  // Safety fallback: if init never fires unblock the UI after 5 s.
+  setTimeout(() => {
+    if (!ready.value) ready.value = true
+  }, 5000)
+
   ;(window as unknown as Record<string, unknown>).netlifyIdentity = netlifyIdentity
 })

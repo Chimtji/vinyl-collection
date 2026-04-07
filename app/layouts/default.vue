@@ -1,8 +1,7 @@
 <script setup lang="ts">
 const { ready, isLoggedIn, login } = useAuth()
 
-// Once auth state is resolved and user is not logged in, open the overlay.
-// Using watchEffect means it also re-triggers if the user logs out.
+// As soon as auth state resolves and user is not logged in, open the overlay.
 watchEffect(() => {
   if (ready.value && !isLoggedIn.value) {
     login()
@@ -11,20 +10,10 @@ watchEffect(() => {
 </script>
 
 <template>
-  <!-- While the Identity widget resolves auth from localStorage, show a
-       minimal full-screen loader so there is never a blank white flash. -->
-  <div v-if="!ready" class="auth-loading">
-    <div class="auth-loading-spinner">
-      <i class="pi pi-disc auth-loading-icon" />
-    </div>
-  </div>
-
-  <!-- Auth resolved but not logged in: keep the loader visible while the
-       Netlify Identity overlay is open (it is opened in the watchEffect). -->
-  <div v-else-if="!isLoggedIn" class="auth-loading">
-    <div class="auth-loading-spinner">
-      <i class="pi pi-disc auth-loading-icon" />
-    </div>
+  <!-- Spinner while the Identity widget is initialising or while the user
+       is not yet logged in (overlay will be open on top). -->
+  <div v-if="!ready || !isLoggedIn" class="auth-loading">
+    <i class="pi pi-disc auth-loading-icon" />
   </div>
 
   <!-- Fully authenticated: render the normal app shell. -->
@@ -47,13 +36,6 @@ watchEffect(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.auth-loading-spinner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
 }
 
 .auth-loading-icon {
