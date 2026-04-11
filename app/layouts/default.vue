@@ -1,19 +1,19 @@
 <script setup lang="ts">
-// const { ready, isLoggedIn, login } = useAuth()
+const { isLoggedIn, login, logout } = useAuth()
 
 // // As soon as auth state resolves and user is not logged in, open the overlay.
-// watchEffect(() => {
-//   if (ready.value && !isLoggedIn.value) {
-//     login()
-//   }
-// })
+watchEffect(() => {
+  if (!isLoggedIn.value) {
+    login()
+  }
+})
 
 onBeforeMount(() => {
-  useAuth().logout()
+  logout()
 })
 
 onMounted(() => {
-  useAuth().login()
+  login()
 })
 </script>
 
