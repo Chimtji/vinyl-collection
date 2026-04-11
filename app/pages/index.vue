@@ -321,6 +321,34 @@ function artworkSrc(album: CollectionAlbum) {
 function fmtDKK(n: number) {
   return n.toLocaleString('da-DK') + ' DKK'
 }
+
+// ── Shelf size visualization ───────────────────────────────────────────────
+const SHELF_COMPARTMENTS = 5
+const RECORDS_PER_COMPARTMENT = 50
+const VISUAL_BARS = 10 // 10 bars = 10% each
+const COMP_W = 80
+const BAR_W = 5
+const BAR_GAP = 2
+const RECORD_COLORS = ['#C45529', '#D4AC6E', '#7A9E8A', '#5C7A9E', '#9E5C7A', '#E8845A']
+
+const shelfCompartmentsFilled = computed(() => totalAlbums.value / RECORDS_PER_COMPARTMENT)
+
+const shelfLayout = computed(() => {
+  const offsets = [0, 2, 4, 2, 3, 1, 5, 3, 2, 4]
+  const totalFill = totalAlbums.value / RECORDS_PER_COMPARTMENT // e.g. 1.75 = 1 full + 75%
+
+  return Array.from({ length: SHELF_COMPARTMENTS }, (_, ci) => {
+    const compartmentFill = Math.min(1, Math.max(0, totalFill - ci)) // 0–1 for this compartment
+    const filledBars = compartmentFill * VISUAL_BARS // e.g. 7.5
+
+    const x = 2 + ci * (COMP_W + 2)
+    const bars = Array.from({ length: VISUAL_BARS }, (_, bi) => ({
+      filled: bi < Math.round(filledBars),
+      offsetY: 10 + offsets[bi % offsets.length],
+    }))
+    return { x, bars }
+  })
+})
 </script>
 
 <template>
@@ -393,53 +421,14 @@ function fmtDKK(n: number) {
     </div>
 
     <!-- ── Valuation ──────────────────────────────────────── -->
-    <div class="chart-card valuation-card">
-      <div class="valuation-header">
-        <div>
-          <h3 class="chart-title" style="margin: 0">
-            <i class="pi pi-euro" /> Collection Valuation
-          </h3>
-          <p class="valuation-explain">Prices from Vinylpladen.dk · new LP editions</p>
-        </div>
-        <Button
-          v-if="!valuationFetched && !valuationLoading"
-          label="Hent vurdering"
-          icon="pi pi-refresh"
-          size="small"
-          @click="fetchValuation"
-        />
-        <Button
-          v-else-if="valuationFetched"
-          icon="pi pi-refresh"
-          size="small"
-          text
-          title="Opdater priser"
-          @click="fetchValuation"
-        />
-      </div>
-
-      <!-- Loading -->
-      <div v-if="valuationLoading" class="valuation-loading">
-        <ProgressBar :value="valuationProgress" style="height: 6px; margin-bottom: 0.75rem" />
-        <p class="valuation-loading-text">
-          Tjekker priser… {{ priceResults.length }} / {{ totalAlbums }}
-        </p>
-      </div>
-
-      <!-- Results -->
-      <template v-else-if="valuationFetched">
-        <div class="valuation-summary">
-          <div class="valuation-total-block">
-            <p class="valuation-total-label">Anslået samlet værdi</p>
-            <p class="valuation-total-val">{{ fmtDKK(totalValue) }}</p>
+    <div class="dash-value-row">
+      <div class="chart-card valuation-card">
+        <div class="valuation-header">
+          <div>
+            <h3 class="chart-title" style="margin: 0"><i class="pi pi-dollar" /> Samling Værdi</h3>
+            <p class="valuation-explain">Priser fra Vinylpladen.dk · Nye LP</p>
           </div>
-          <div class="valuation-coverage-block">
-            <p class="valuation-coverage-label">
-              {{ pricedCount }} / {{ totalAlbums }} albums prissat ({{ coveragePct }}%)
-            </p>
-            <ProgressBar :value="coveragePct" style="height: 8px; min-width: 160px" />
-          </div>
-          <div class="valuation-summary-actions">
+          <div class="value-card-head-controls">
             <Button
               v-if="pricedAlbums.length"
               label="Se priser"
@@ -448,22 +437,126 @@ function fmtDKK(n: number) {
               outlined
               @click="showPriceModal = true"
             />
-            <p v-if="cachedAt" class="valuation-cache-age">Opdateret {{ cacheAge }}</p>
+            <Button
+              v-if="!valuationFetched && !valuationLoading"
+              label="Hent vurdering"
+              icon="pi pi-refresh"
+              size="small"
+              @click="fetchValuation"
+            />
+            <Button
+              v-else-if="valuationFetched"
+              icon="pi pi-refresh"
+              size="small"
+              text
+              title="Opdater priser"
+              @click="fetchValuation"
+            />
           </div>
         </div>
-        <p v-if="pricedCount < totalAlbums" class="valuation-missing">
-          {{ totalAlbums - pricedCount }} album{{ totalAlbums - pricedCount === 1 ? '' : 's' }} ikke
-          fundet på Vinylpladen
-        </p>
-      </template>
 
-      <!-- Idle -->
-      <div v-else class="valuation-idle">
-        <i class="pi pi-tag valuation-idle-icon" />
-        <p>
-          Klik på &quot;Hent vurdering&quot; for at beregne den samlede værdi af din samling baseret
-          på aktuelle Vinylpladen-priser.
-        </p>
+        <!-- Loading -->
+        <div v-if="valuationLoading" class="valuation-loading">
+          <ProgressBar :value="valuationProgress" style="height: 6px; margin-bottom: 0.75rem" />
+          <p class="valuation-loading-text">
+            Tjekker priser… {{ priceResults.length }} / {{ totalAlbums }}
+          </p>
+        </div>
+
+        <!-- Results -->
+        <template v-else-if="valuationFetched">
+          <div class="valuation-summary">
+            <div class="valuation-total-block">
+              <p class="valuation-total-label">Anslået samlet værdi</p>
+              <p class="valuation-total-val">{{ fmtDKK(totalValue) }}</p>
+            </div>
+            <div class="valuation-coverage-block">
+              <p class="valuation-coverage-label">
+                {{ pricedCount }} / {{ totalAlbums }} albums prissat ({{ coveragePct }}%)
+              </p>
+              <ProgressBar :value="coveragePct" style="height: 8px; min-width: 160px" />
+            </div>
+          </div>
+          <p v-if="pricedCount < totalAlbums" class="valuation-missing">
+            {{ totalAlbums - pricedCount }} album{{ totalAlbums - pricedCount === 1 ? '' : 's' }}
+            ikke fundet på Vinylpladen
+          </p>
+        </template>
+
+        <!-- Idle -->
+        <div v-else class="valuation-idle">
+          <i class="pi pi-tag valuation-idle-icon" />
+          <p>
+            Klik på &quot;Hent vurdering&quot; for at beregne den samlede værdi af din samling
+            baseret på aktuelle Vinylpladen-priser.
+          </p>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="valuation-header">
+          <div>
+            <h3 class="chart-title" style="margin: 0">
+              <i class="pi pi-euro" /> Samling Størrelse
+            </h3>
+            <p class="dash-stat-val" style="margin-top: 0.5rem">
+              {{ ((totalAlbums * 5.26) / 1000).toFixed(2) }} m -
+              {{ shelfCompartmentsFilled.toFixed(1) }} hylder
+            </p>
+            <!-- Shelf size visualization -->
+            <div style="margin-top: 1rem">
+              <svg
+                :viewBox="`0 0 420 100`"
+                xmlns="http://www.w3.org/2000/svg"
+                style="width: 100%; height: auto; display: block"
+              >
+                <defs>
+                  <pattern id="woodgrain" patternUnits="userSpaceOnUse" width="4" height="4">
+                    <rect width="4" height="4" fill="#b5895a" opacity="0.18" />
+                    <line
+                      x1="0"
+                      y1="2"
+                      x2="4"
+                      y2="2"
+                      stroke="#8B6340"
+                      stroke-width="0.4"
+                      opacity="0.3"
+                    />
+                  </pattern>
+                </defs>
+
+                <!-- Shelf label -->
+                <text
+                  x="210"
+                  y="8"
+                  font-size="7"
+                  fill="currentColor"
+                  text-anchor="middle"
+                  font-family="sans-serif"
+                  opacity="0.5"
+                ></text>
+
+                <!-- Dividers + records -->
+                <template v-for="(comp, ci) in shelfLayout" :key="ci">
+                  <!-- record bars -->
+                  <rect
+                    v-for="(bar, bi) in comp.bars"
+                    :key="bi"
+                    :x="comp.x + 3 + bi * (BAR_W + BAR_GAP)"
+                    :y="bar.offsetY"
+                    :width="BAR_W"
+                    :height="90 - (bar.offsetY - 10)"
+                    rx="1"
+                    :fill="bar.filled ? RECORD_COLORS[bi % RECORD_COLORS.length] : '#888'"
+                    :opacity="bar.filled ? 1 : 0.25"
+                  />
+                </template>
+              </svg>
+              <p class="valuation-explain">
+                Baseret på et gennemsnit af faktiske album-tykkelse (6,325 mm) på en hylde (35 cm).
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

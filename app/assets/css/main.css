@@ -3244,7 +3244,7 @@ body {
 .dash-page {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 1rem;
 }
 
 .dash-header {
@@ -3548,6 +3548,11 @@ body {
 }
 
 /* ── Valuation card ────────────────────────────────────────── */
+.dash-value-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
 .valuation-card {
   border-color: rgba(196, 85, 41, 0.2);
 }
@@ -3560,10 +3565,16 @@ body {
   margin-bottom: 1.25rem;
 }
 
+.value-card-head-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .valuation-explain {
   font-size: 0.775rem;
   color: var(--app-text-muted);
-  margin: 0.2rem 0 0;
+  margin: 1rem 0 0;
+  text-wrap: balance;
 }
 
 .valuation-loading {
