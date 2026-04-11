@@ -1,23 +1,31 @@
 <script setup lang="ts">
-const { ready, isLoggedIn, login } = useAuth()
+// const { ready, isLoggedIn, login } = useAuth()
 
-// As soon as auth state resolves and user is not logged in, open the overlay.
-watchEffect(() => {
-  if (ready.value && !isLoggedIn.value) {
-    login()
-  }
+// // As soon as auth state resolves and user is not logged in, open the overlay.
+// watchEffect(() => {
+//   if (ready.value && !isLoggedIn.value) {
+//     login()
+//   }
+// })
+
+onBeforeMount(() => {
+  useAuth().logout()
+})
+
+onMounted(() => {
+  useAuth().login()
 })
 </script>
 
 <template>
   <!-- Spinner while the Identity widget is initialising or while the user
        is not yet logged in (overlay will be open on top). -->
-  <div v-if="!ready || !isLoggedIn" class="auth-loading">
+  <!-- <div v-if="!ready || !isLoggedIn" class="auth-loading">
     <i class="pi pi-disc auth-loading-icon" />
-  </div>
+  </div> -->
 
   <!-- Fully authenticated: render the normal app shell. -->
-  <div v-else class="app-layout">
+  <div class="app-layout">
     <NuxtRouteAnnouncer />
     <AppSidebar />
     <main class="app-content">

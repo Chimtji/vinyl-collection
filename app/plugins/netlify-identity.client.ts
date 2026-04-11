@@ -29,19 +29,17 @@ export default defineNuxtPlugin(() => {
   }
 
   netlifyIdentity.on('init', (u) => {
-    if (u) {
-      // A token was found in localStorage. Only trust it if this browser
-      // session was established via an explicit login (sessionStorage flag).
-      // If the flag is missing the browser was closed and reopened — clear
-      // the stored token and show the login overlay fresh.
-      if (!sessionStorage.getItem(SESSION_KEY)) {
-        // Logout clears localStorage and fires the 'logout' handler below,
-        // which opens the overlay.
-        netlifyIdentity.logout()
-        return
-      }
-      user.value = u as AuthUser
+    if (u && !sessionStorage.getItem(SESSION_KEY)) {
+      // Stale token found in localStorage but no active session (browser was
+      // closed/reopened). Wipe it locally and show the login overlay fresh —
+      // no network logout call needed, just kill the stored credential.
+      localStorage.removeItem('gotrue.user')
+      user.value = null
+      ready.value = true
+      netlifyIdentity.open('login')
+      return
     }
+    user.value = (u as AuthUser) ?? null
     ready.value = true
   })
 
@@ -56,7 +54,6 @@ export default defineNuxtPlugin(() => {
   netlifyIdentity.on('logout', () => {
     sessionStorage.removeItem(SESSION_KEY)
     user.value = null
-    ready.value = true
     netlifyIdentity.open('login')
   })
 
