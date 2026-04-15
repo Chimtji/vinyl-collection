@@ -1,5 +1,4 @@
 import process from 'node:process'
-import { readWishlist } from '~/server/utils/wishlistStorage'
 
 /**
  * Public endpoint — no authentication required.

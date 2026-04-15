@@ -1,5 +1,4 @@
 import process from 'node:process'
-import { readCollection } from '~/server/utils/collectionStorage'
 
 /**
  * Public endpoint — no authentication required.
