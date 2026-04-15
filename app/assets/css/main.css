@@ -3849,6 +3849,52 @@ body {
   border: 1px solid var(--app-border);
 }
 
+/* ── Unpriced manual-link section ─────────────────────────── */
+.valuation-unpriced-section {
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--app-border);
+  padding-top: 1rem;
+}
+
+.valuation-unpriced-title {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--app-text-muted);
+  margin: 0 0 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.valuation-unpriced-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--app-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.valuation-unpriced-row {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.6rem 0.875rem;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.valuation-unpriced-row:last-child {
+  border-bottom: none;
+}
+
+.valuation-unpriced-input {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-shrink: 0;
+  width: 260px;
+}
+
 .valuation-missing {
   font-size: 0.775rem;
   color: var(--app-text-muted);

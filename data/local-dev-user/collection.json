@@ -235,7 +235,8 @@
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music/v4/d3/9e/78/d39e7872-631f-ac58-ffda-0532fca2ebda/0724359253251_1400x1400_300dpi.jpg/600x600bb.jpg",
     "itunesCollectionId": 696590674,
     "id": "68f2fd47-1c28-48a8-a451-9faf84ed8ce2",
-    "addedAt": "2026-04-04T06:43:50.496Z"
+    "addedAt": "2026-04-04T06:43:50.496Z",
+    "vinylpladenUrl": "https://vinylpladen.dk/vinyl/tim-christensen/honeyburst-LP-1"
   },
   {
     "title": "Big Big Machine",
@@ -353,6 +354,7 @@
     "itunesCollectionId": 1544298981,
     "trackCount": 9,
     "id": "03d5cd12-9582-496c-b3ef-6559b5012230",
-    "addedAt": "2026-04-04T19:04:29.195Z"
+    "addedAt": "2026-04-04T19:04:29.195Z",
+    "vinylpladenUrl": "https://vinylpladen.dk/vinyl/prince/prince-LP"
   }
 ]

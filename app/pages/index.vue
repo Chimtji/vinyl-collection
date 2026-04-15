@@ -5,7 +5,7 @@ definePageMeta({ ssr: false })
 useSeoMeta({ title: 'Overblik — Vinylsamling' })
 
 const router = useRouter()
-const { albums, genres, fetchCollection } = useCollection()
+const { albums, genres, fetchCollection, updateAlbum } = useCollection()
 const { fetchWishlist } = useWishlist()
 const { getArtworkUrl } = useAppleMusic()
 
@@ -284,6 +284,46 @@ const pricedAlbums = computed(
     })[],
 )
 
+const unpricedAlbums = computed(() =>
+  priceResults.value
+    .filter((r) => r.price === null)
+    .map((r) => albums.value.find((a) => a.id === r.id))
+    .filter(Boolean) as CollectionAlbum[],
+)
+
+const manualUrlMap = ref<Record<string, string>>({})
+const savingUrlId = ref<string | null>(null)
+
+watch(showPriceModal, (open) => {
+  if (!open) return
+  // Pre-fill inputs with any already-saved vinylpladenUrl
+  for (const album of unpricedAlbums.value) {
+    if (album.vinylpladenUrl && !manualUrlMap.value[album.id]) {
+      manualUrlMap.value[album.id] = album.vinylpladenUrl
+    }
+  }
+})
+
+async function saveManualUrl(album: CollectionAlbum) {
+  const url = manualUrlMap.value[album.id]?.trim()
+  if (!url) return
+  savingUrlId.value = album.id
+  try {
+    await updateAlbum(album.id, { vinylpladenUrl: url })
+    const results = await $fetch<Array<{ id: string; price: number | null; inStock: boolean }>>(
+      '/api/vinylpladen/prices',
+      { method: 'POST', body: [{ id: album.id, url }] },
+    )
+    if (results[0]) {
+      const idx = priceResults.value.findIndex((r) => r.id === album.id)
+      if (idx !== -1) priceResults.value[idx] = results[0]
+      saveValuationCache()
+    }
+  } finally {
+    savingUrlId.value = null
+  }
+}
+
 async function fetchValuation() {
   if (valuationLoading.value || !albums.value.length) return
   valuationLoading.value = true
@@ -480,7 +520,7 @@ const shelfLayout = computed(() => {
           </div>
           <p v-if="pricedCount < totalAlbums" class="valuation-missing">
             {{ totalAlbums - pricedCount }} album{{ totalAlbums - pricedCount === 1 ? '' : 's' }}
-            ikke fundet på Vinylpladen
+            ikke fundet — <a href="#" style="color: #d4ac6e" @click.prevent="showPriceModal = true">tilføj links</a>
           </p>
         </template>
 
@@ -600,10 +640,43 @@ const shelfLayout = computed(() => {
           </div>
         </div>
       </div>
-      <p v-if="pricedCount < totalAlbums" class="valuation-missing" style="padding: 0 0.25rem">
-        {{ totalAlbums - pricedCount }} album{{ totalAlbums - pricedCount === 1 ? '' : 's' }} ikke
-        fundet på Vinylpladen
-      </p>
+      <div v-if="unpricedAlbums.length" class="valuation-unpriced-section">
+        <h4 class="valuation-unpriced-title">
+          <i class="pi pi-search" />
+          Ikke fundet ({{ unpricedAlbums.length }}) — tilføj link manuelt
+        </h4>
+        <div class="valuation-unpriced-list">
+          <div v-for="album in unpricedAlbums" :key="album.id" class="valuation-unpriced-row">
+            <img
+              v-if="artworkSrc(album)"
+              :src="artworkSrc(album)"
+              :alt="album.title"
+              class="valuation-album-art"
+            />
+            <div v-else class="valuation-album-art valuation-album-art--placeholder">
+              <i class="pi pi-disc" />
+            </div>
+            <div class="valuation-album-info">
+              <p class="valuation-album-title">{{ album.title }}</p>
+              <p class="valuation-album-artist">{{ album.artist }}</p>
+            </div>
+            <div class="valuation-unpriced-input">
+              <InputText
+                v-model="manualUrlMap[album.id]"
+                placeholder="https://vinylpladen.dk/vinyl/..."
+                size="small"
+              />
+              <Button
+                icon="pi pi-arrow-right"
+                size="small"
+                :loading="savingUrlId === album.id"
+                :disabled="!manualUrlMap[album.id]"
+                @click="saveManualUrl(album)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </Dialog>
   </div>
 </template>
