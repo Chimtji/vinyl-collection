@@ -279,7 +279,9 @@ onMounted(async () => {
   onUnmounted(() => observer.disconnect())
 
   try {
-    const data = await $fetch<CollectionAlbum[]>('/api/collection')
+    const data = await $fetch<CollectionAlbum[]>('/api/collection/share', {
+      query: { userId: useRoute().query.userId },
+    })
     albums.value = data
     await nextTick()
     buildCharts()

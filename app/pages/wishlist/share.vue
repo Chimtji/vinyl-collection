@@ -179,7 +179,9 @@ async function fetchPrices(wishlistItems: WishlistItem[]) {
 // ── Load ──────────────────────────────────────────────────
 onMounted(async () => {
   try {
-    const data = await $fetch<WishlistItem[]>('/api/wishlist')
+    const data = await $fetch<WishlistItem[]>('/api/wishlist/share', {
+      query: { userId: useRoute().query.userId },
+    })
     items.value = data
     await fetchPrices(data)
   } finally {

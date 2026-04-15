@@ -23,7 +23,18 @@ onMounted(() => {
 
 type NavItem =
   | { type: 'link'; id: string; label: string; icon: string; to: string; badge?: () => number }
+  | { type: 'action'; id: string; label: string; icon: string; onClick: () => void }
   | { type: 'section'; label: string }
+
+const collectionShareCopied = ref(false)
+function copyCollectionShare() {
+  const userId = user.value?.id ?? ''
+  const url = `${window.location.origin}/collection/share${userId ? `?userId=${userId}` : ''}`
+  navigator.clipboard.writeText(url).then(() => {
+    collectionShareCopied.value = true
+    setTimeout(() => (collectionShareCopied.value = false), 2000)
+  })
+}
 
 const navItems: NavItem[] = [
   { type: 'link', id: 'dashboard', label: 'Overblik', icon: 'pi pi-home', to: '/' },
@@ -54,11 +65,11 @@ const navItems: NavItem[] = [
     badge: () => new Set(albums.value.map((a) => a.artist)).size,
   },
   {
-    type: 'link',
+    type: 'action' as const,
     id: 'collection-share',
     label: 'Del samling',
     icon: 'pi pi-share-alt',
-    to: '/collection/share',
+    onClick: () => copyCollectionShare(),
   },
   { type: 'section', label: 'Ønskeliste' },
   {
@@ -78,7 +89,7 @@ function isActive(item: Extract<NavItem, { type: 'link' }>) {
     return route.path === '/collection' && (!route.query.view || route.query.view === 'genres')
   if (item.id === 'albums') return route.path === '/collection' && route.query.view === 'albums'
   if (item.id === 'artists') return route.path === '/collection' && route.query.view === 'artists'
-  if (item.id === 'collection-share') return route.path === '/collection/share'
+  if (item.id === 'collection-share') return false
   if (item.id === 'wishlist') return route.path.startsWith('/wishlist')
   return false
 }
@@ -111,8 +122,22 @@ function openImport() {
 
     <!-- Nav -->
     <nav class="app-sidebar-nav">
-      <template v-for="item in navItems" :key="item.type === 'link' ? item.id : item.label">
+      <template v-for="item in navItems" :key="'id' in item ? item.id : item.label">
         <p v-if="item.type === 'section'" class="app-sidebar-section">{{ item.label }}</p>
+        <button
+          v-else-if="item.type === 'action'"
+          class="sidebar-nav-item sidebar-action-btn"
+          :class="{ 'action-copied': item.id === 'collection-share' && collectionShareCopied }"
+          @click="item.onClick()"
+        >
+          <i
+            :class="
+              item.id === 'collection-share' && collectionShareCopied ? 'pi pi-check' : item.icon
+            "
+            class="sidebar-nav-icon"
+          />
+          {{ item.id === 'collection-share' && collectionShareCopied ? 'Kopieret!' : item.label }}
+        </button>
         <NuxtLink v-else :to="item.to" class="sidebar-nav-item" :class="{ active: isActive(item) }">
           <i :class="item.icon" class="sidebar-nav-icon" />
           {{ item.label }}
@@ -206,5 +231,22 @@ function openImport() {
 
 .dark-mode .sidebar-logo-link.active .app-sidebar-logo-text {
   color: #e8845a;
+}
+
+.sidebar-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.sidebar-action-btn.action-copied {
+  color: #22c55e;
 }
 </style>

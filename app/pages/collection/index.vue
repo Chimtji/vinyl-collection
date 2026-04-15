@@ -378,9 +378,11 @@ function applyManualMatch(item: ImportCandidate, result: ItunesSearchResult) {
 }
 
 // ── Share link ───────────────────────────────────────────
+const { user } = useAuth()
 const copied = ref(false)
 function copyShareLink() {
-  const url = `${window.location.origin}/collection/share`
+  const userId = user.value?.id ?? ''
+  const url = `${window.location.origin}/collection/share${userId ? `?userId=${userId}` : ''}`
   navigator.clipboard.writeText(url).then(() => {
     copied.value = true
     setTimeout(() => (copied.value = false), 2000)
