@@ -57,7 +57,7 @@ const albumSections = computed<Sec<CollectionAlbum>[]>(() =>
 )
 
 function albumDetailHref(album: CollectionAlbum) {
-  return `/album/${album.id}`
+  return album.itunesCollectionId ? `/album/itunes/${album.itunesCollectionId}` : '#'
 }
 
 // ── Edit dialog ───────────────────────────────────────────

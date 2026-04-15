@@ -309,8 +309,8 @@ async function fetchValuation() {
   saveValuationCache()
 }
 
-function openAlbumFromModal(id: string) {
-  router.push(`/album/${id}`)
+function openAlbumFromModal(album: CollectionAlbum & { price: number; inStock: boolean }) {
+  if (album.itunesCollectionId) router.push(`/album/itunes/${album.itunesCollectionId}`)
   showPriceModal.value = false
 }
 
@@ -573,7 +573,7 @@ const shelfLayout = computed(() => {
           :key="album.id"
           class="valuation-album-row"
           role="button"
-          @click="openAlbumFromModal(album.id)"
+          @click="openAlbumFromModal(album)"
         >
           <img
             v-if="artworkSrc(album)"

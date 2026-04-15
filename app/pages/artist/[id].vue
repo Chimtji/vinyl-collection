@@ -149,12 +149,7 @@ function toggleSection(type: string) {
 }
 
 function goToAlbum(album: ItunesAlbum) {
-  const localId = localAlbumMap.value.get(album.collectionId)
-  if (localId) {
-    router.push(`/album/${localId}`)
-  } else {
-    router.push(`/album/itunes/${album.collectionId}`)
-  }
+  router.push(`/album/itunes/${album.collectionId}`)
 }
 
 // ── Wishlist ──────────────────────────────────────────────

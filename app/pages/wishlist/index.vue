@@ -129,7 +129,7 @@ const movingId = ref<string | null>(null)
 async function moveToCollection(item: WishlistItem) {
   movingId.value = item.id
   try {
-    const album = await addAlbum({
+    await addAlbum({
       title: item.title,
       artist: item.artist,
       genre: item.genre,
@@ -139,7 +139,7 @@ async function moveToCollection(item: WishlistItem) {
       trackCount: item.trackCount,
     })
     await removeFromWishlist(item.id)
-    router.push(`/album/${album.id}`)
+    router.push(`/album/itunes/${item.itunesCollectionId}`)
   } finally {
     movingId.value = null
   }

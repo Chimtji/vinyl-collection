@@ -173,7 +173,7 @@ async function doDelete(album: CollectionAlbum) {
           <NuxtLink
             v-for="album in albumList"
             :key="album.id"
-            :to="`/album/${album.id}`"
+            :to="album.itunesCollectionId ? `/album/itunes/${album.itunesCollectionId}` : '#'"
             class="crate-item"
           >
             <div class="crate-stack">
@@ -201,7 +201,7 @@ async function doDelete(album: CollectionAlbum) {
           <NuxtLink
             v-for="album in albumList"
             :key="album.id"
-            :to="`/album/${album.id}`"
+            :to="album.itunesCollectionId ? `/album/itunes/${album.itunesCollectionId}` : '#'"
             class="clist-row"
           >
             <div class="clist-art-wrap">

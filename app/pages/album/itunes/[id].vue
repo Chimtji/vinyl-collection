@@ -175,7 +175,7 @@ async function addToCollection() {
   adding.value = true
   try {
     const album = itunesAlbum.value
-    const newAlbum = await addAlbum({
+    await addAlbum({
       title: album.collectionName,
       artist: album.artistName,
       genre: album.primaryGenreName || 'Other',
@@ -186,7 +186,7 @@ async function addToCollection() {
       itunesCollectionId: album.collectionId,
       trackCount: album.trackCount,
     })
-    router.push(`/album/${newAlbum.id}`)
+    router.push(`/album/itunes/${itunesId}`)
   } finally {
     adding.value = false
   }
@@ -269,7 +269,7 @@ async function addToCollection() {
             </button>
             <NuxtLink
               v-else
-              :to="`/album/${inCollection.id}`"
+              :to="`/album/itunes/${itunesId}`"
               style="text-decoration: none; margin-bottom: 0"
             >
               <button class="album-type-badge collection-action-badge" style="margin-bottom: 0">
