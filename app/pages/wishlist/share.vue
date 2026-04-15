@@ -2,9 +2,20 @@
 import type { WishlistItem } from '~/composables/useWishlist'
 
 definePageMeta({ layout: 'share', ssr: false })
-useSeoMeta({ title: 'Ønskeliste — Delt visning' })
 
+const { user } = useAuth()
 const { getArtworkUrl } = useAppleMusic()
+
+const ownerName = computed(() => {
+  const full = user.value?.user_metadata?.full_name ?? user.value?.email ?? ''
+  return full.includes('@') ? full.split('@')[0]! : full
+})
+
+useSeoMeta({
+  title: computed(() =>
+    ownerName.value ? `${ownerName.value}s Ønskeliste` : 'Ønskeliste — Delt visning',
+  ),
+})
 
 // ── Data ─────────────────────────────────────────────────
 const items = ref<WishlistItem[]>([])
@@ -195,7 +206,9 @@ function artworkSrc(item: WishlistItem) {
             <i class="pi pi-disc" />
           </div>
           <div class="share-header-title-group">
-            <span class="share-header-title">Ønskeliste</span>
+            <span class="share-header-title">{{
+              ownerName ? `${ownerName}s Ønskeliste` : 'Ønskeliste'
+            }}</span>
             <span v-if="!loading" class="share-header-count">{{ items.length }}</span>
           </div>
           <span class="share-view-badge">
@@ -344,8 +357,7 @@ function artworkSrc(item: WishlistItem) {
 
     <!-- Footer branding -->
     <footer class="share-footer">
-      <i class="pi pi-disc" style="color: var(--gradient-primary)" />
-      <span>VinylCollection</span>
+      <span>Made with 🔥 by Chimtji</span>
     </footer>
   </div>
 </template>

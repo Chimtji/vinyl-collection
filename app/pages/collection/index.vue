@@ -377,6 +377,16 @@ function applyManualMatch(item: ImportCandidate, result: ItunesSearchResult) {
   manualModalVisible.value = false
 }
 
+// ── Share link ───────────────────────────────────────────
+const copied = ref(false)
+function copyShareLink() {
+  const url = `${window.location.origin}/collection/share`
+  navigator.clipboard.writeText(url).then(() => {
+    copied.value = true
+    setTimeout(() => (copied.value = false), 2000)
+  })
+}
+
 // ── Delete ────────────────────────────────────────────────
 const confirmDelete = ref<CollectionAlbum | null>(null)
 const deleting = ref(false)
@@ -413,6 +423,14 @@ async function doDelete() {
           size="small"
           class="collection-search-input"
         />
+        <button
+          class="view-toggle-btn share-btn"
+          :class="{ 'share-btn--copied': copied }"
+          :title="copied ? 'Kopieret!' : 'Kopier delt visning'"
+          @click="copyShareLink"
+        >
+          <i :class="copied ? 'pi pi-check' : 'pi pi-share-alt'" />
+        </button>
         <div class="view-toggles">
           <button
             class="view-toggle-btn"

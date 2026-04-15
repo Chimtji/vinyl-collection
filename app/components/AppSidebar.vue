@@ -53,6 +53,13 @@ const navItems: NavItem[] = [
     to: '/collection?view=artists',
     badge: () => new Set(albums.value.map((a) => a.artist)).size,
   },
+  {
+    type: 'link',
+    id: 'collection-share',
+    label: 'Del samling',
+    icon: 'pi pi-share-alt',
+    to: '/collection/share',
+  },
   { type: 'section', label: 'Ønskeliste' },
   {
     type: 'link',
@@ -71,6 +78,7 @@ function isActive(item: Extract<NavItem, { type: 'link' }>) {
     return route.path === '/collection' && (!route.query.view || route.query.view === 'genres')
   if (item.id === 'albums') return route.path === '/collection' && route.query.view === 'albums'
   if (item.id === 'artists') return route.path === '/collection' && route.query.view === 'artists'
+  if (item.id === 'collection-share') return route.path === '/collection/share'
   if (item.id === 'wishlist') return route.path.startsWith('/wishlist')
   return false
 }

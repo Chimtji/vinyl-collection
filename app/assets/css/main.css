@@ -2211,6 +2211,12 @@ body {
   color: #e8845a;
 }
 
+.view-toggle-btn.share-btn--copied {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #16a34a;
+}
+
 .view-mode-btns .view-toggle-btn {
   border: none;
   border-radius: 0;
