@@ -5,6 +5,8 @@ const SESSION_KEY = 'nl_active_session'
 
 export default defineNuxtPlugin(() => {
   const { user, ready, authHeaders } = useAuth()
+  const { fetchCollection } = useCollection()
+  const { fetchWishlist } = useWishlist()
 
   // ── Local development: use a mock user, skip the identity widget ──────
   if (import.meta.dev) {
@@ -47,7 +49,7 @@ export default defineNuxtPlugin(() => {
     sessionStorage.setItem(SESSION_KEY, '1')
     user.value = u as AuthUser
     netlifyIdentity.close()
-    window.location.href = '/'
+    await Promise.all([fetchCollection(), fetchWishlist()])
   })
 
   netlifyIdentity.on('logout', () => {
