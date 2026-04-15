@@ -188,6 +188,7 @@ async function doDelete(album: CollectionAlbum) {
                 <div v-else class="crate-record-img crate-record-placeholder">
                   <i class="pi pi-disc" />
                 </div>
+                <SignatureOverlay v-if="album.signed" />
               </div>
             </div>
             <div class="crate-info">
@@ -217,6 +218,7 @@ async function doDelete(album: CollectionAlbum) {
               <div v-else class="cist-art clist-art-placeholder">
                 <i class="pi pi-disc" />
               </div>
+              <SignatureOverlay v-if="album.signed" />
             </div>
             <div class="clist-info">
               <span class="clist-title">{{ album.title }}</span>

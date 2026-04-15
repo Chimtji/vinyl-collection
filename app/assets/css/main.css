@@ -1328,6 +1328,21 @@ body {
   border-color: rgba(239, 68, 68, 0.4);
   color: #fca5a5;
 }
+.collection-action-badge--remove:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #fecaca;
+}
+.collection-action-badge--edit {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #a5b4fc;
+}
+.collection-action-badge--edit:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.3);
+  border-color: rgba(99, 102, 241, 0.6);
+  color: #c7d2fe;
+}
 
 /* Two-layer label fade inside the badge */
 .collection-action-badge .cab-default,
@@ -1948,6 +1963,78 @@ body {
   padding: 0.5rem 0;
 }
 
+/* Apple Music reference block inside edit dialog */
+.edit-itunes-ref {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  background: rgba(250, 250, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.6rem;
+}
+.edit-itunes-ref-art {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.4rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.edit-itunes-ref-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.edit-itunes-ref-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--app-text-muted);
+  margin: 0;
+}
+.edit-itunes-ref-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--app-text);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.edit-itunes-ref-sub {
+  font-size: 0.78rem;
+  color: var(--app-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Per-field "restore to Apple Music value" hint */
+.edit-itunes-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: rgba(165, 180, 252, 0.7);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.edit-itunes-hint:hover {
+  color: #a5b4fc;
+  text-decoration: underline;
+}
+
 .add-dialog-preview {
   display: flex;
   align-items: center;
@@ -2217,6 +2304,7 @@ body {
 
 .clist-art-wrap {
   flex-shrink: 0;
+  position: relative;
 }
 
 .clist-art {
@@ -3768,10 +3856,113 @@ body {
   font-style: italic;
 }
 
+/* ── Signed album badge (album hero) ─────────────────────── */
+.album-signed-badge {
+  background: rgba(212, 172, 110, 0.18);
+  border-color: rgba(212, 172, 110, 0.45);
+  color: #d4ac6e;
+}
+
+/* ── Signed toggle in edit dialog ────────────────────────── */
+.edit-signed-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--app-text);
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--app-border);
+  background: var(--app-bg-alt);
+  user-select: none;
+  transition: border-color 0.15s;
+}
+.edit-signed-toggle:hover {
+  border-color: rgba(212, 172, 110, 0.45);
+}
+.edit-signed-toggle span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ── Signed albums section (dashboard) ───────────────────── */
+.signed-section {
+  margin-top: 0;
+}
+
+.signed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.signed-album-card {
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.18s ease;
+}
+.signed-album-card:hover {
+  transform: translateY(-3px);
+}
+
+.signed-art-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 0.6rem;
+  overflow: hidden;
+  margin-bottom: 0.45rem;
+}
+
+.signed-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.signed-art-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--app-bg-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--app-text-muted);
+}
+
+.signed-ribbon {
+  display: none;
+}
+
+.signed-album-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--app-text);
+  margin: 0 0 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.signed-album-artist {
+  font-size: 0.72rem;
+  color: var(--app-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ── Responsive ───────────────────────────────────────────── */
 @media (max-width: 900px) {
   .dash-stats-row {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .dash-charts-3col {

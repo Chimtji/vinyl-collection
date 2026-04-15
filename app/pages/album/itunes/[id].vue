@@ -7,7 +7,7 @@ const route = useRoute()
 const router = useRouter()
 const { getAlbumTracks, getArtworkUrl, formatReleaseYear } = useAppleMusic()
 const { searchRelease, getDiscogsUrl } = useDiscogs()
-const { addAlbum, albums, fetchCollection } = useCollection()
+const { addAlbum, updateAlbum, deleteAlbum, albums, fetchCollection } = useCollection()
 const { addToWishlist, removeFromWishlist, getWishlistItem, fetchWishlist } = useWishlist()
 
 const itunesId = Number(route.params.id)
@@ -26,12 +26,27 @@ const tracks = computed(() => itunesData.value?.tracks ?? [])
 
 useSeoMeta({ title: () => `${itunesAlbum.value?.collectionName ?? 'Album'} — Vinyl Collection` })
 
-const displayTitle = computed(() => itunesAlbum.value?.collectionName ?? '')
-const displayArtist = computed(() => itunesAlbum.value?.artistName ?? '')
-const displayYear = computed(() =>
-  itunesAlbum.value ? formatReleaseYear(itunesAlbum.value.releaseDate) : '',
+onMounted(() => fetchCollection())
+onMounted(() => fetchWishlist())
+
+const inCollection = computed(
+  () => albums.value.find((a) => a.itunesCollectionId === itunesId) ?? null,
 )
-const displayGenre = computed(() => itunesAlbum.value?.primaryGenreName ?? '')
+
+const displayTitle = computed(
+  () => inCollection.value?.title || itunesAlbum.value?.collectionName || '',
+)
+const displayArtist = computed(
+  () => inCollection.value?.artist || itunesAlbum.value?.artistName || '',
+)
+const displayYear = computed(() => {
+  if (inCollection.value?.year && inCollection.value.year !== 0)
+    return String(inCollection.value.year)
+  return itunesAlbum.value ? formatReleaseYear(itunesAlbum.value.releaseDate) : ''
+})
+const displayGenre = computed(
+  () => inCollection.value?.genre || itunesAlbum.value?.primaryGenreName || '',
+)
 const displayArtistId = computed(() => itunesAlbum.value?.artistId ?? null)
 const artworkUrl = computed(() =>
   itunesAlbum.value?.artworkUrl100 ? getArtworkUrl(itunesAlbum.value.artworkUrl100, 500) : '',
@@ -84,11 +99,17 @@ function stripEditionWords(title: string): string {
 }
 
 const vinylpladenUrl = computed(() => {
+  if (inCollection.value?.vinylpladenUrl) return inCollection.value.vinylpladenUrl
   const artist = displayArtist.value
   const title = displayTitle.value
   if (!artist || !title) return null
   return `https://vinylpladen.dk/vinyl/${toVinylpladenSlug(artist)}/${toVinylpladenSlug(title)}-LP`
 })
+
+function tryAutoSaveVinylpladenUrl(url: string) {
+  if (!inCollection.value || inCollection.value.vinylpladenUrl) return
+  updateAlbum(inCollection.value.id, { vinylpladenUrl: url })
+}
 
 const vinylpladenPrice = ref<string | null>(null)
 const vinylpladenActiveUrl = ref<string | null>(null)
@@ -108,7 +129,9 @@ watch(
       if (result.price !== null) {
         vinylpladenPrice.value = result.price
         vinylpladenActiveUrl.value = url
-      } else {
+        tryAutoSaveVinylpladenUrl(url)
+      } else if (!inCollection.value?.vinylpladenUrl) {
+        // Only try stripped fallback for auto-generated URLs, not manually saved ones
         const strippedTitle = stripEditionWords(displayTitle.value)
         if (strippedTitle !== displayTitle.value) {
           const fallbackUrl = `https://vinylpladen.dk/vinyl/${toVinylpladenSlug(displayArtist.value)}/${toVinylpladenSlug(strippedTitle)}-LP`
@@ -116,7 +139,10 @@ watch(
             `/api/vinylpladen/price?url=${encodeURIComponent(fallbackUrl)}`,
           )
           vinylpladenPrice.value = fallback.price
-          if (fallback.price !== null) vinylpladenActiveUrl.value = fallbackUrl
+          if (fallback.price !== null) {
+            vinylpladenActiveUrl.value = fallbackUrl
+            tryAutoSaveVinylpladenUrl(fallbackUrl)
+          }
         }
       }
     } catch {
@@ -128,18 +154,74 @@ watch(
   { immediate: true },
 )
 
+// Handle race: collection loads after price is already fetched
+watch(inCollection, (col) => {
+  if (col && !col.vinylpladenUrl && vinylpladenActiveUrl.value) {
+    updateAlbum(col.id, { vinylpladenUrl: vinylpladenActiveUrl.value })
+  }
+})
+
 function openAppleMusic() {
   if (itunesAlbum.value?.collectionViewUrl) {
     window.open(itunesAlbum.value.collectionViewUrl, '_blank', 'noopener,noreferrer')
   }
 }
 
-onMounted(() => fetchCollection())
-onMounted(() => fetchWishlist())
+// ── Edit ─────────────────────────────────────────────────
+const editDialogVisible = ref(false)
+const editSaving = ref(false)
+const editForm = ref<{
+  id: string
+  title: string
+  artist: string
+  genre: string
+  year: number
+  notes: string
+  signed: boolean
+  vinylpladenUrl: string
+} | null>(null)
 
-const inCollection = computed(
-  () => albums.value.find((a) => a.itunesCollectionId === itunesId) ?? null,
-)
+function openEdit() {
+  if (!inCollection.value) return
+  editForm.value = {
+    id: inCollection.value.id,
+    title: inCollection.value.title,
+    artist: inCollection.value.artist,
+    genre: inCollection.value.genre,
+    year: inCollection.value.year,
+    notes: inCollection.value.notes ?? '',
+    signed: inCollection.value.signed ?? false,
+    vinylpladenUrl: inCollection.value.vinylpladenUrl ?? vinylpladenActiveUrl.value ?? '',
+  }
+  editDialogVisible.value = true
+}
+
+async function saveEdit() {
+  if (!editForm.value) return
+  editSaving.value = true
+  try {
+    await updateAlbum(editForm.value.id, editForm.value)
+    editDialogVisible.value = false
+  } finally {
+    editSaving.value = false
+  }
+}
+
+// ── Delete ────────────────────────────────────────────────
+const deleteConfirm = ref(false)
+const deleting = ref(false)
+
+async function doDelete() {
+  if (!inCollection.value) return
+  deleting.value = true
+  try {
+    await deleteAlbum(inCollection.value.id)
+    deleteConfirm.value = false
+    router.back()
+  } finally {
+    deleting.value = false
+  }
+}
 
 const adding = ref(false)
 
@@ -267,16 +349,37 @@ async function addToCollection() {
               <i class="pi" :class="adding ? 'pi-spin pi-spinner' : 'pi-plus'" />
               {{ adding ? 'Tilføjer…' : 'Tilføj til samling' }}
             </button>
-            <NuxtLink
-              v-else
-              :to="`/album/itunes/${itunesId}`"
-              style="text-decoration: none; margin-bottom: 0"
-            >
-              <button class="album-type-badge collection-action-badge" style="margin-bottom: 0">
-                <span class="cab-default"><i class="pi pi-check" /> I min samling</span>
-                <span class="cab-hover"><i class="pi pi-arrow-right" /> Gå til album</span>
+            <template v-else>
+              <button
+                class="album-type-badge collection-action-badge"
+                style="margin-bottom: 0; cursor: default"
+              >
+                <i class="pi pi-check" /> I min samling
               </button>
-            </NuxtLink>
+              <div
+                v-if="inCollection.signed"
+                class="album-type-badge album-signed-badge"
+                style="margin-bottom: 0"
+              >
+                <i class="pi pi-pen-to-square" /> Signeret
+              </div>
+              <button
+                class="album-type-badge collection-action-badge collection-action-badge--edit"
+                style="margin-bottom: 0"
+                title="Rediger album"
+                @click="openEdit"
+              >
+                <i class="pi pi-pencil" /> Rediger
+              </button>
+              <button
+                class="album-type-badge collection-action-badge collection-action-badge--remove"
+                style="margin-bottom: 0"
+                title="Fjern fra samling"
+                @click="deleteConfirm = true"
+              >
+                <i class="pi pi-trash" /> Fjern
+              </button>
+            </template>
           </div>
 
           <h1 class="album-title">{{ displayTitle }}</h1>
@@ -436,5 +539,146 @@ async function addToCollection() {
         </a>
       </div>
     </template>
+
+    <!-- ── Edit Dialog ─────────────────────────────────── -->
+    <Dialog
+      v-model:visible="editDialogVisible"
+      header="Rediger album"
+      modal
+      :style="{ width: '520px' }"
+    >
+      <div v-if="editForm" class="add-dialog-body">
+        <!-- Apple Music reference -->
+        <div v-if="itunesAlbum" class="edit-itunes-ref">
+          <img
+            v-if="artworkUrl"
+            :src="artworkUrl"
+            :alt="itunesAlbum.collectionName"
+            class="edit-itunes-ref-art"
+          />
+          <div class="edit-itunes-ref-info">
+            <p class="edit-itunes-ref-label">
+              <i class="pi pi-apple" style="font-size: 0.7rem" /> Apple Music
+            </p>
+            <p class="edit-itunes-ref-title">{{ itunesAlbum.collectionName }}</p>
+            <p class="edit-itunes-ref-sub">
+              {{ itunesAlbum.artistName }}
+              <span v-if="itunesAlbum.primaryGenreName"> · {{ itunesAlbum.primaryGenreName }}</span>
+              <span v-if="itunesAlbum.releaseDate">
+                · {{ formatReleaseYear(itunesAlbum.releaseDate) }}</span
+              >
+            </p>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Albumtitel</label>
+          <InputText v-model="editForm.title" class="w-full" />
+          <button
+            v-if="itunesAlbum && itunesAlbum.collectionName !== editForm.title"
+            class="edit-itunes-hint"
+            type="button"
+            @click="editForm.title = itunesAlbum.collectionName"
+          >
+            <i class="pi pi-apple" /> {{ itunesAlbum.collectionName }}
+          </button>
+        </div>
+        <div class="form-field">
+          <label>Kunstner</label>
+          <InputText v-model="editForm.artist" class="w-full" />
+          <button
+            v-if="itunesAlbum && itunesAlbum.artistName !== editForm.artist"
+            class="edit-itunes-hint"
+            type="button"
+            @click="editForm.artist = itunesAlbum.artistName"
+          >
+            <i class="pi pi-apple" /> {{ itunesAlbum.artistName }}
+          </button>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Genre</label>
+            <InputText v-model="editForm.genre" class="w-full" />
+            <button
+              v-if="
+                itunesAlbum?.primaryGenreName && itunesAlbum.primaryGenreName !== editForm.genre
+              "
+              class="edit-itunes-hint"
+              type="button"
+              @click="editForm.genre = itunesAlbum.primaryGenreName"
+            >
+              <i class="pi pi-apple" /> {{ itunesAlbum.primaryGenreName }}
+            </button>
+          </div>
+          <div class="form-field form-field-year">
+            <label>År</label>
+            <InputNumber v-model="editForm.year" :use-grouping="false" class="w-full" />
+            <button
+              v-if="
+                itunesAlbum?.releaseDate &&
+                Number(formatReleaseYear(itunesAlbum.releaseDate)) !== editForm.year
+              "
+              class="edit-itunes-hint"
+              type="button"
+              @click="editForm.year = Number(formatReleaseYear(itunesAlbum.releaseDate))"
+            >
+              <i class="pi pi-apple" /> {{ formatReleaseYear(itunesAlbum.releaseDate) }}
+            </button>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>
+            Notater
+            <span style="color: var(--app-text-muted); font-weight: 400">(valgfrit)</span>
+          </label>
+          <Textarea v-model="editForm.notes" rows="2" class="w-full" auto-resize />
+        </div>
+        <div class="form-field">
+          <label>
+            Vinylpladen URL
+            <span style="color: var(--app-text-muted); font-weight: 400">(valgfrit)</span>
+          </label>
+          <InputText
+            v-model="editForm.vinylpladenUrl"
+            class="w-full"
+            placeholder="https://vinylpladen.dk/vinyl/..."
+          />
+        </div>
+        <label class="edit-signed-toggle">
+          <Checkbox v-model="editForm.signed" :binary="true" input-id="signed-cb" />
+          <span>
+            <i class="pi pi-pen-to-square" style="font-size: 0.85rem" />
+            Signeret eksemplar
+          </span>
+        </label>
+      </div>
+      <template #footer>
+        <Button label="Annuller" text @click="editDialogVisible = false" />
+        <Button label="Gem" icon="pi pi-check" :loading="editSaving" @click="saveEdit" />
+      </template>
+    </Dialog>
+
+    <!-- ── Delete Confirm Dialog ─────────────────────────── -->
+    <Dialog
+      v-model:visible="deleteConfirm"
+      header="Fjern fra samling"
+      modal
+      :style="{ width: '400px' }"
+    >
+      <p style="margin: 0">
+        Er du sikker på, at du vil fjerne
+        <strong>{{ displayTitle }}</strong> fra din samling?
+      </p>
+      <template #footer>
+        <Button label="Annuller" text @click="deleteConfirm = false" />
+        <Button
+          label="Fjern"
+          icon="pi pi-trash"
+          severity="danger"
+          :loading="deleting"
+          @click="doDelete"
+        />
+      </template>
+    </Dialog>
   </div>
 </template>

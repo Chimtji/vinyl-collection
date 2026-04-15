@@ -138,6 +138,12 @@ function isInCollection(album: ItunesAlbum) {
   return localAlbumMap.value.has(album.collectionId)
 }
 
+function isSignedInCollection(album: ItunesAlbum) {
+  return (
+    collectionAlbums.value.find((a) => a.itunesCollectionId === album.collectionId)?.signed ?? false
+  )
+}
+
 const expandedSections = ref<Set<string>>(new Set(['Album']))
 
 function toggleSection(type: string) {
@@ -363,6 +369,7 @@ async function saveToCollection() {
                     @click.stop="goToAlbum(album)"
                   />
                 </div>
+                <SignatureOverlay v-if="isSignedInCollection(album)" />
               </div>
               <p class="artist-discog-title">{{ album.collectionName }}</p>
               <p class="artist-discog-year">

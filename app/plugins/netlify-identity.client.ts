@@ -47,7 +47,7 @@ export default defineNuxtPlugin(() => {
     sessionStorage.setItem(SESSION_KEY, '1')
     user.value = u as AuthUser
     netlifyIdentity.close()
-    navigateTo('/')
+    window.location.href = '/'
   })
 
   netlifyIdentity.on('logout', () => {

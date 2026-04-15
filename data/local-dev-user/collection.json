@@ -40,14 +40,15 @@
     "addedAt": "2026-04-04T06:43:50.273Z"
   },
   {
-    "title": "For Those About To Rock (We Salute You)",
+    "title": "For Those About to Rock (We Salute You)",
     "artist": "AC/DC",
     "genre": "Hard Rock",
-    "year": 2009,
+    "year": 1981,
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Features125/v4/14/7e/d7/147ed798-ff65-ad74-6fd3-86e452dca077/dj.hnuoonld.jpg/600x600bb.jpg",
     "itunesCollectionId": 574055123,
     "id": "99588a3a-ba23-4b10-81fd-0a573f982d2a",
-    "addedAt": "2026-04-04T06:43:50.282Z"
+    "addedAt": "2026-04-04T06:43:50.282Z",
+    "notes": ""
   },
   {
     "title": "I Am",
@@ -77,7 +78,8 @@
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/af/3c/0f/af3c0fe2-1c4f-8499-67a8-14a8e41fdbf8/5021732410535.jpg/600x600bb.jpg",
     "itunesCollectionId": 1751728791,
     "id": "836e4412-a7a2-4caf-8585-561c60767903",
-    "addedAt": "2026-04-04T06:43:50.315Z"
+    "addedAt": "2026-04-04T06:43:50.315Z",
+    "vinylpladenUrl": "https://vinylpladen.dk/vinyl/coldplay/moon-music-LP"
   },
   {
     "title": "The College Dropout",
@@ -93,11 +95,13 @@
     "title": "Discovery",
     "artist": "Daft Punk",
     "genre": "Dance",
-    "year": 2023,
+    "year": 2001,
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/fd/4a/77/fd4a77db-0ebc-d043-41a2-f32fa1bb0fb4/dj.qrikkdwj.jpg/600x600bb.jpg",
     "itunesCollectionId": 697194953,
     "id": "ba16cd2d-e31f-4cbe-a346-97b950e6c957",
-    "addedAt": "2026-04-04T06:43:50.337Z"
+    "addedAt": "2026-04-04T06:43:50.337Z",
+    "notes": "",
+    "vinylpladenUrl": "https://vinylpladen.dk/vinyl/daft-punk/discovery-LP"
   },
   {
     "title": "30",
@@ -132,12 +136,13 @@
   {
     "title": "3 Feet High And Rising",
     "artist": "De La Soul",
-    "genre": "Hip-Hop/Rap",
-    "year": 2023,
+    "genre": "Hip-Hop",
+    "year": 1989,
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/17/43/a2/1743a2ab-0630-6527-cca5-a73d855df4a1/810098505963.png/600x600bb.jpg",
     "itunesCollectionId": 1673853423,
     "id": "7ed0baf9-6866-4209-9d65-2b4329f7102d",
-    "addedAt": "2026-04-04T06:43:50.408Z"
+    "addedAt": "2026-04-04T06:43:50.408Z",
+    "notes": ""
   },
   {
     "title": "In The Wee Small Hours",
@@ -190,14 +195,17 @@
     "addedAt": "2026-04-04T06:43:50.461Z"
   },
   {
-    "title": "Guld & Grønne Skove (Kim Larsens Greatest 1983-1994)",
+    "title": "Guld & Grønne Skove - Greatest (Remastered)",
     "artist": "Kim Larsen",
     "genre": "Pop",
-    "year": 2017,
+    "year": 2012,
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music4/v4/2a/21/dd/2a21ddbd-a13f-b40c-5781-293d57269bf7/dj.cosklpbv.jpg/600x600bb.jpg",
     "itunesCollectionId": 693778054,
     "id": "31a5f089-86b7-4e60-a29c-a405826970d5",
-    "addedAt": "2026-04-04T06:43:50.470Z"
+    "addedAt": "2026-04-04T06:43:50.470Z",
+    "notes": "",
+    "signed": false,
+    "vinylpladenUrl": "https://vinylpladen.dk/vinyl/kim-larsen/guld-gr-nne-skove-LP"
   },
   {
     "title": "The Dark Side Of The Moon",
@@ -237,17 +245,20 @@
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/a3/93/d1/a393d18b-f30b-5469-cbce-6b9bff97b867/4066004475158_3000.jpg/600x600bb.jpg",
     "itunesCollectionId": 1659463415,
     "id": "094e171e-1293-45b6-8567-2f8f983354f4",
-    "addedAt": "2026-04-04T06:43:50.517Z"
+    "addedAt": "2026-04-04T06:43:50.517Z",
+    "notes": "",
+    "signed": true
   },
   {
     "title": "Babel",
     "artist": "Mumford & Sons",
-    "genre": "Alternative",
-    "year": 2022,
+    "genre": "Folk",
+    "year": 2012,
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/95/bf/e3/95bfe37f-0b57-0ae1-0f26-407a47881cd1/0602537110490_Cover.jpg/600x600bb.jpg",
     "itunesCollectionId": 1771725011,
     "id": "42fe1001-5c78-417a-bec0-90a100fb1fad",
-    "addedAt": "2026-04-04T06:43:50.530Z"
+    "addedAt": "2026-04-04T06:43:50.530Z",
+    "notes": ""
   },
   {
     "title": "The Low End Theory",
@@ -262,22 +273,24 @@
   {
     "title": "Californication",
     "artist": "Red Hot Chili Peppers",
-    "genre": "Alternative",
-    "year": 2021,
+    "genre": "Funk/Rock",
+    "year": 1999,
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/4c/86/1d/4c861dab-5428-f3b7-8068-82bb69db5e89/093624932130.jpg/600x600bb.jpg",
     "itunesCollectionId": 945575406,
     "id": "10688443-50d3-4fcc-8c29-0e46e9aa5006",
-    "addedAt": "2026-04-04T06:43:50.550Z"
+    "addedAt": "2026-04-04T06:43:50.550Z",
+    "notes": ""
   },
   {
-    "title": "Ella And Louis",
-    "artist": "Ella Fitzgerald, Louis Armstrong",
+    "title": "Ella and Louis",
+    "artist": "Ella Fitzgerald & Louis Armstrong",
     "genre": "Jazz",
-    "year": 0,
+    "year": 1956,
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/ac/4b/53/ac4b5314-43aa-666b-43b2-845117e9c402/06UMGIM08714.rgb.jpg/600x600bb.jpg",
     "itunesCollectionId": 1469584174,
     "id": "a65160dc-227b-49cf-8120-7bf410fd055c",
-    "addedAt": "2026-04-04T06:43:50.562Z"
+    "addedAt": "2026-04-04T06:43:50.562Z",
+    "notes": ""
   },
   {
     "title": "Motivational Music For The Syncopated Soul",
@@ -297,7 +310,8 @@
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/e8/de/3f/e8de3f38-215a-339f-b64a-d40ebfc3ea68/23UMGIM98768.rgb.jpg/600x600bb.jpg",
     "itunesCollectionId": 1725446442,
     "id": "e1efd8a4-e595-455f-8d21-44396db6b144",
-    "addedAt": "2026-04-04T06:43:50.596Z"
+    "addedAt": "2026-04-04T06:43:50.596Z",
+    "vinylpladenUrl": "https://vinylpladen.dk/vinyl/jacob-collier/djesse-vol-4-LP"
   },
   {
     "title": "Zitilites",
@@ -323,11 +337,12 @@
     "title": "Dizzy Mizz Lizzy",
     "artist": "Dizzy Mizz Lizzy",
     "genre": "Rock",
-    "year": 2014,
+    "year": 1994,
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/b1/8c/2c/b18c2c5a-8ae6-5906-79a9-27a6d9f8fc1b/5099963229059_1400x1400_300dpi.jpg/600x600bb.jpg",
     "itunesCollectionId": 693468378,
     "id": "9bc5129f-ab48-49c5-bbc7-7d1ea8f6ab32",
-    "addedAt": "2026-04-04T06:43:50.624Z"
+    "addedAt": "2026-04-04T06:43:50.624Z",
+    "notes": ""
   },
   {
     "title": "Prince",

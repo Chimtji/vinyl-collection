@@ -29,6 +29,7 @@ onMounted(async () => {
 const totalAlbums = computed(() => albums.value.length)
 const totalArtists = computed(() => new Set(albums.value.map((a) => a.artist)).size)
 const totalGenres = computed(() => genres.value.length)
+const signedAlbums = computed(() => albums.value.filter((a) => a.signed))
 const oldestYear = computed(() => {
   const years = albums.value.map((a) => a.year).filter((y) => y > 1900)
   return years.length ? Math.min(...years) : null
@@ -292,7 +293,7 @@ async function fetchValuation() {
   const BATCH = 5
   const payload = albums.value.map((a) => ({
     id: a.id,
-    url: `https://vinylpladen.dk/vinyl/${toVinylpladenSlug(a.artist)}/${toVinylpladenSlug(a.title)}-LP`,
+    url: a.vinylpladenUrl ?? `https://vinylpladen.dk/vinyl/${toVinylpladenSlug(a.artist)}/${toVinylpladenSlug(a.title)}-LP`,
   }))
 
   for (let i = 0; i < payload.length; i += BATCH) {

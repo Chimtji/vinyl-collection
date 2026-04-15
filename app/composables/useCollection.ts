@@ -6,6 +6,8 @@ export interface CollectionAlbum {
   year: number
   artworkUrl: string
   notes?: string
+  signed?: boolean
+  vinylpladenUrl?: string
   itunesCollectionId?: number
   trackCount?: number
   addedAt: string
