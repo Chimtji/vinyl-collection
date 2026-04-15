@@ -64,13 +64,6 @@ const navItems: NavItem[] = [
     to: '/collection?view=artists',
     badge: () => new Set(albums.value.map((a) => a.artist)).size,
   },
-  {
-    type: 'action' as const,
-    id: 'collection-share',
-    label: 'Del samling',
-    icon: 'pi pi-share-alt',
-    onClick: () => copyCollectionShare(),
-  },
   { type: 'section', label: 'Ønskeliste' },
   {
     type: 'link',
@@ -171,6 +164,16 @@ function openImport() {
       <ClientOnly>
         <BarcodeScanner />
       </ClientOnly>
+      <Button
+        :icon="collectionShareCopied ? 'pi pi-check' : 'pi pi-share-alt'"
+        :label="collectionShareCopied ? 'Kopieret!' : 'Del samling'"
+        :severity="collectionShareCopied ? 'success' : 'secondary'"
+        class="w-full"
+        style="width: 100%"
+        size="small"
+        outlined
+        @click="copyCollectionShare"
+      />
       <p class="app-sidebar-credit">Made with 🔥 by Chimtji</p>
     </div>
   </aside>

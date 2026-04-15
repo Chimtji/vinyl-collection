@@ -101,11 +101,13 @@ async function saveEdit() {
 }
 
 // ── Share link ───────────────────────────────────────────
+const { user } = useAuth()
 const shareCopied = ref(false)
 let shareCopiedTimer: ReturnType<typeof setTimeout> | null = null
 
 async function copyShareLink() {
-  const url = `${window.location.origin}/wishlist/share`
+  const userId = user.value?.id ?? ''
+  const url = `${window.location.origin}/wishlist/share${userId ? `?userId=${userId}` : ''}`
   try {
     await navigator.clipboard.writeText(url)
   } catch {
