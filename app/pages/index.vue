@@ -70,14 +70,197 @@ async function buildCharts() {
   // ── Radar
   if (radarCanvas.value) {
     radarChart?.destroy()
-    const gs = genres.value.slice(0, 8)
+    const FIXED_GENRES = [
+      'Classical', // → Jazz
+      'Jazz', // → Blues
+      'Blues', // → R&B / Soul
+      'R&B / Soul', // → Hip-Hop
+      'Hip-Hop', // → Electronic
+      'Electronic', // → Pop
+      'Pop', // → Rock
+      'Rock', // → Metal
+      'Metal', // → Punk
+      'Punk', // → Reggae
+      'Reggae', // → Folk / Country
+      'Folk / Country', // → Classical
+    ]
+    const SUBGENRE_MAP: Record<string, string> = {
+      // Rock
+      rock: 'Rock',
+      'classic rock': 'Rock',
+      'hard rock': 'Rock',
+      'indie rock': 'Rock',
+      'alternative rock': 'Rock',
+      alternative: 'Rock',
+      'psychedelic rock': 'Rock',
+      'progressive rock': 'Rock',
+      'garage rock': 'Rock',
+      'surf rock': 'Rock',
+      'post-rock': 'Rock',
+      'art rock': 'Rock',
+      'glam rock': 'Rock',
+      krautrock: 'Rock',
+      // Pop
+      pop: 'Pop',
+      'synth-pop': 'Pop',
+      'dream pop': 'Pop',
+      'indie pop': 'Pop',
+      'chamber pop': 'Pop',
+      'baroque pop': 'Pop',
+      electropop: 'Pop',
+      'dance-pop': 'Pop',
+      'power pop': 'Pop',
+      'sophisti-pop': 'Pop',
+      // Jazz
+      jazz: 'Jazz',
+      bebop: 'Jazz',
+      'cool jazz': 'Jazz',
+      'free jazz': 'Jazz',
+      fusion: 'Jazz',
+      'jazz fusion': 'Jazz',
+      'smooth jazz': 'Jazz',
+      'soul jazz': 'Jazz',
+      'avant-garde jazz': 'Jazz',
+      'bossa nova': 'Jazz',
+      'acid jazz': 'Jazz',
+      // Electronic
+      electronic: 'Electronic',
+      electronica: 'Electronic',
+      techno: 'Electronic',
+      house: 'Electronic',
+      'deep house': 'Electronic',
+      'tech house': 'Electronic',
+      'progressive house': 'Electronic',
+      ambient: 'Electronic',
+      'ambient electronic': 'Electronic',
+      idm: 'Electronic',
+      'drum and bass': 'Electronic',
+      dnb: 'Electronic',
+      'd&b': 'Electronic',
+      dubstep: 'Electronic',
+      trance: 'Electronic',
+      'progressive trance': 'Electronic',
+      psytrance: 'Electronic',
+      synth: 'Electronic',
+      synthwave: 'Electronic',
+      retrowave: 'Electronic',
+      darkwave: 'Electronic',
+      'new wave': 'Electronic',
+      industrial: 'Electronic',
+      'trip-hop': 'Electronic',
+      downtempo: 'Electronic',
+      edm: 'Electronic',
+      dance: 'Electronic',
+      'dance music': 'Electronic',
+      eurodance: 'Electronic',
+      disco: 'Electronic',
+      'nu-disco': 'Electronic',
+      'italo disco': 'Electronic',
+      electro: 'Electronic',
+      'electro house': 'Electronic',
+      'minimal techno': 'Electronic',
+      minimal: 'Electronic',
+      garage: 'Electronic',
+      'uk garage': 'Electronic',
+      jungle: 'Electronic',
+      breakbeat: 'Electronic',
+      breaks: 'Electronic',
+      noise: 'Electronic',
+      glitch: 'Electronic',
+      vaporwave: 'Electronic',
+      chillwave: 'Electronic',
+      'lo-fi': 'Electronic',
+      'lo-fi electronic': 'Electronic',
+      'future bass': 'Electronic',
+      'cloud rap': 'Electronic',
+      hardstyle: 'Electronic',
+      'hardcore techno': 'Electronic',
+      gabber: 'Electronic',
+      // Hip-Hop
+      'hip-hop': 'Hip-Hop',
+      'hip hop': 'Hip-Hop',
+      rap: 'Hip-Hop',
+      trap: 'Hip-Hop',
+      'lo-fi hip hop': 'Hip-Hop',
+      'boom bap': 'Hip-Hop',
+      'gangsta rap': 'Hip-Hop',
+      'conscious hip-hop': 'Hip-Hop',
+      // Classical
+      classical: 'Classical',
+      orchestral: 'Classical',
+      opera: 'Classical',
+      'chamber music': 'Classical',
+      baroque: 'Classical',
+      romantic: 'Classical',
+      'contemporary classical': 'Classical',
+      neoclassical: 'Classical',
+      // R&B / Soul
+      'r&b': 'R&B / Soul',
+      soul: 'R&B / Soul',
+      'r&b/soul': 'R&B / Soul',
+      'rhythm and blues': 'R&B / Soul',
+      'neo soul': 'R&B / Soul',
+      funk: 'R&B / Soul',
+      motown: 'R&B / Soul',
+      gospel: 'R&B / Soul',
+      'contemporary r&b': 'R&B / Soul',
+      // Folk / Country
+      folk: 'Folk / Country',
+      country: 'Folk / Country',
+      'folk rock': 'Folk / Country',
+      americana: 'Folk / Country',
+      bluegrass: 'Folk / Country',
+      'singer-songwriter': 'Folk / Country',
+      'alt-country': 'Folk / Country',
+      'country rock': 'Folk / Country',
+      acoustic: 'Folk / Country',
+      // Blues
+      blues: 'Blues',
+      'electric blues': 'Blues',
+      'chicago blues': 'Blues',
+      'delta blues': 'Blues',
+      'blues rock': 'Blues',
+      'rhythm & blues': 'Blues',
+      // Metal
+      metal: 'Metal',
+      'heavy metal': 'Metal',
+      'death metal': 'Metal',
+      'black metal': 'Metal',
+      'thrash metal': 'Metal',
+      'doom metal': 'Metal',
+      'power metal': 'Metal',
+      'prog metal': 'Metal',
+      'nu-metal': 'Metal',
+      // Punk
+      punk: 'Punk',
+      'punk rock': 'Punk',
+      'post-punk': 'Punk',
+      hardcore: 'Punk',
+      'hardcore punk': 'Punk',
+      emo: 'Punk',
+      'pop punk': 'Punk',
+      'ska punk': 'Punk',
+      // Reggae
+      reggae: 'Reggae',
+      ska: 'Reggae',
+      dub: 'Reggae',
+      dancehall: 'Reggae',
+      rocksteady: 'Reggae',
+      'roots reggae': 'Reggae',
+    }
+    const counts: Record<string, number> = Object.fromEntries(FIXED_GENRES.map((g) => [g, 0]))
+    for (const g of genres.value) {
+      const key = g.genre.toLowerCase().trim()
+      const major = SUBGENRE_MAP[key]
+      if (major) counts[major] = (counts[major] ?? 0) + g.albums.length
+    }
     radarChart = new Chart(radarCanvas.value, {
       type: 'radar',
       data: {
-        labels: gs.map((g) => g.genre),
+        labels: FIXED_GENRES,
         datasets: [
           {
-            data: gs.map((g) => g.albums.length),
+            data: FIXED_GENRES.map((g) => counts[g]),
             backgroundColor: 'rgba(196,85,41,0.15)',
             borderColor: '#C45529',
             borderWidth: 2,
@@ -284,11 +467,12 @@ const pricedAlbums = computed(
     })[],
 )
 
-const unpricedAlbums = computed(() =>
-  priceResults.value
-    .filter((r) => r.price === null)
-    .map((r) => albums.value.find((a) => a.id === r.id))
-    .filter(Boolean) as CollectionAlbum[],
+const unpricedAlbums = computed(
+  () =>
+    priceResults.value
+      .filter((r) => r.price === null)
+      .map((r) => albums.value.find((a) => a.id === r.id))
+      .filter(Boolean) as CollectionAlbum[],
 )
 
 const manualUrlMap = ref<Record<string, string>>({})
@@ -333,7 +517,9 @@ async function fetchValuation() {
   const BATCH = 5
   const payload = albums.value.map((a) => ({
     id: a.id,
-    url: a.vinylpladenUrl ?? `https://vinylpladen.dk/vinyl/${toVinylpladenSlug(a.artist)}/${toVinylpladenSlug(a.title)}-LP`,
+    url:
+      a.vinylpladenUrl ??
+      `https://vinylpladen.dk/vinyl/${toVinylpladenSlug(a.artist)}/${toVinylpladenSlug(a.title)}-LP`,
   }))
 
   for (let i = 0; i < payload.length; i += BATCH) {
@@ -520,7 +706,10 @@ const shelfLayout = computed(() => {
           </div>
           <p v-if="pricedCount < totalAlbums" class="valuation-missing">
             {{ totalAlbums - pricedCount }} album{{ totalAlbums - pricedCount === 1 ? '' : 's' }}
-            ikke fundet — <a href="#" style="color: #d4ac6e" @click.prevent="showPriceModal = true">tilføj links</a>
+            ikke fundet —
+            <a href="#" style="color: #d4ac6e" @click.prevent="showPriceModal = true"
+              >tilføj links</a
+            >
           </p>
         </template>
 
