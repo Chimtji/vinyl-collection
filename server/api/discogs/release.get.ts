@@ -1,22 +1,16 @@
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const { artist, album } = query
+  const { id } = query
 
-  if (!artist && !album) {
-    throw createError({ statusCode: 400, message: 'Artist or album is required' })
+  if (!id) {
+    throw createError({ statusCode: 400, message: 'Release ID is required' })
   }
 
-  const params = new URLSearchParams()
-  if (artist) params.set('artist', String(artist))
-  if (album) params.set('release_title', String(album))
-  params.set('type', 'release')
-  params.set('per_page', '5')
-
-  const cacheKey = `search:${params.toString()}`
+  const cacheKey = `release:${id}`
   const cached = getCached(cacheKey)
   if (cached) return cached
 
-  const url = `https://api.discogs.com/database/search?${params.toString()}`
+  const url = `https://api.discogs.com/releases/${id}`
 
   try {
     const data = await $fetch<Record<string, unknown>>(url, { headers: discogsHeaders() })

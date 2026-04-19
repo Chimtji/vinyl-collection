@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import type { DiscogsRelease } from '~/composables/useDiscogs'
+import type { DiscogsRelease, DiscogsFullRelease } from '~/composables/useDiscogs'
+import { parseCredits } from '~/composables/useDiscogs'
 
 definePageMeta({ ssr: false })
 
 const route = useRoute()
 const router = useRouter()
 const { getAlbumTracks, getArtworkUrl, formatReleaseYear } = useAppleMusic()
-const { searchRelease, getDiscogsUrl } = useDiscogs()
+const { searchRelease, getRelease, getDiscogsUrl } = useDiscogs()
 const { addAlbum, updateAlbum, deleteAlbum, albums, fetchCollection } = useCollection()
 const { addToWishlist, removeFromWishlist, getWishlistItem, fetchWishlist } = useWishlist()
 
@@ -54,16 +55,27 @@ const artworkUrl = computed(() =>
 
 // Load Discogs + Wikipedia in parallel after album loads
 const discogsRelease = ref<DiscogsRelease | null>(null)
+const discogsFullRelease = ref<DiscogsFullRelease | null>(null)
 const discogsLoading = ref(false)
+const discogsRateLimited = ref(false)
 const wikiSummary = ref<{ title: string; extract: string; url: string } | null>(null)
 
-watch(
-  itunesAlbum,
-  async (album) => {
-    if (!album) return
-    discogsLoading.value = true
+const credits = computed(() =>
+  discogsFullRelease.value ? parseCredits(discogsFullRelease.value) : null,
+)
+
+async function loadDiscogs(album: { artistName: string; collectionName: string }) {
+  discogsLoading.value = true
+  discogsRateLimited.value = false
+  try {
+    // Ensure collection is loaded before reading the saved discogsId
+    await fetchCollection()
+    // Use saved discogsId if available — skips the search request entirely
+    const savedId = inCollection.value?.discogsId
     const [discogsResult, wikiResult] = await Promise.all([
-      searchRelease(album.artistName, album.collectionName).catch(() => null),
+      savedId
+        ? Promise.resolve({ id: savedId } as DiscogsRelease)
+        : searchRelease(album.artistName, album.collectionName),
       $fetch<{ title: string; extract: string; url: string } | null>(
         `/api/wikipedia/summary?artist=${encodeURIComponent(album.artistName)}&album=${encodeURIComponent(album.collectionName)}`,
       ).catch(() => null),
@@ -71,6 +83,25 @@ watch(
     discogsRelease.value = discogsResult
     wikiSummary.value = wikiResult
     discogsLoading.value = false
+    // Fetch full release for credits (failure here doesn't break the page)
+    if (discogsResult?.id) {
+      discogsFullRelease.value = await getRelease(discogsResult.id).catch(() => null)
+      // Persist the Discogs ID if not already stored
+      if (!savedId && inCollection.value) {
+        updateAlbum(inCollection.value.id, { discogsId: discogsResult.id }).catch(() => {})
+      }
+    }
+  } catch {
+    // 429 rate limit — don't mark as "not on Discogs", let user retry
+    discogsRateLimited.value = true
+    discogsLoading.value = false
+  }
+}
+
+watch(
+  itunesAlbum,
+  (album) => {
+    if (album) loadDiscogs(album)
   },
   { immediate: true },
 )
@@ -179,6 +210,7 @@ const editForm = ref<{
   notes: string
   signed: boolean
   vinylpladenUrl: string
+  discogsId: string
 } | null>(null)
 
 function openEdit() {
@@ -192,16 +224,33 @@ function openEdit() {
     notes: inCollection.value.notes ?? '',
     signed: inCollection.value.signed ?? false,
     vinylpladenUrl: inCollection.value.vinylpladenUrl ?? vinylpladenActiveUrl.value ?? '',
+    discogsId: inCollection.value.discogsId ? String(inCollection.value.discogsId) : '',
   }
   editDialogVisible.value = true
+}
+
+function parseDiscogsId(input: string): number | undefined {
+  const trimmed = input.trim()
+  if (!trimmed) return undefined
+  if (/^\d+$/.test(trimmed)) return Number(trimmed)
+  const match = trimmed.match(/\/release\/(\d+)/)
+  return match ? Number(match[1]) : undefined
 }
 
 async function saveEdit() {
   if (!editForm.value) return
   editSaving.value = true
   try {
-    await updateAlbum(editForm.value.id, editForm.value)
+    const parsedDiscogsId = parseDiscogsId(editForm.value.discogsId)
+    const prevDiscogsId = inCollection.value?.discogsId
+    await updateAlbum(editForm.value.id, { ...editForm.value, discogsId: parsedDiscogsId })
     editDialogVisible.value = false
+    // Reload Discogs data if the ID changed
+    if (parsedDiscogsId !== prevDiscogsId && itunesAlbum.value) {
+      discogsRelease.value = null
+      discogsFullRelease.value = null
+      loadDiscogs(itunesAlbum.value)
+    }
   } finally {
     editSaving.value = false
   }
@@ -469,6 +518,26 @@ async function addToCollection() {
                 </svg>
                 Discogs
               </a>
+              <button
+                v-else-if="discogsRateLimited"
+                class="discogs-badge"
+                style="background: none; border: none; cursor: pointer; font: inherit"
+                title="Discogs hastighedsgrænse nået — klik for at prøve igen"
+                @click="itunesAlbum && loadDiscogs(itunesAlbum)"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                Prøv igen
+              </button>
               <span v-else-if="!discogsLoading" class="discogs-badge discogs-badge--none">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <circle
@@ -519,6 +588,46 @@ async function addToCollection() {
           <span class="title-count">{{ tracks.length }}</span>
         </h2>
         <TrackList :tracks="tracks" />
+      </div>
+
+      <!-- Production Credits -->
+      <div
+        v-if="
+          credits &&
+          (credits.studios.length ||
+            credits.producers.length ||
+            credits.mixers.length ||
+            credits.lacquerCutAt.length ||
+            credits.lacquerCutBy.length)
+        "
+        class="album-credits"
+      >
+        <h2 class="section-title">
+          <i class="pi pi-id-card" style="color: var(--p-primary-500)" />
+          Produktionskreditter
+        </h2>
+        <div class="credits-grid">
+          <div v-if="credits.studios.length" class="credits-row">
+            <span class="credits-label"><i class="pi pi-building" /> Studiet</span>
+            <span class="credits-value">{{ credits.studios.join(', ') }}</span>
+          </div>
+          <div v-if="credits.producers.length" class="credits-row">
+            <span class="credits-label"><i class="pi pi-sliders-h" /> Producer</span>
+            <span class="credits-value">{{ credits.producers.join(', ') }}</span>
+          </div>
+          <div v-if="credits.mixers.length" class="credits-row">
+            <span class="credits-label"><i class="pi pi-chart-bar" /> Mixer</span>
+            <span class="credits-value">{{ credits.mixers.join(', ') }}</span>
+          </div>
+          <div v-if="credits.lacquerCutAt.length" class="credits-row">
+            <span class="credits-label"><i class="pi pi-map-marker" /> Lak skåret ved</span>
+            <span class="credits-value">{{ credits.lacquerCutAt.join(', ') }}</span>
+          </div>
+          <div v-if="credits.lacquerCutBy.length" class="credits-row">
+            <span class="credits-label"><i class="pi pi-user" /> Lak skåret af</span>
+            <span class="credits-value">{{ credits.lacquerCutBy.join(', ') }}</span>
+          </div>
+        </div>
       </div>
 
       <!-- Wikipedia summary -->
@@ -643,6 +752,29 @@ async function addToCollection() {
             class="w-full"
             placeholder="https://vinylpladen.dk/vinyl/..."
           />
+        </div>
+        <div class="form-field">
+          <label>
+            Discogs release
+            <span style="color: var(--app-text-muted); font-weight: 400">(valgfrit)</span>
+          </label>
+          <InputText
+            v-model="editForm.discogsId"
+            class="w-full"
+            placeholder="https://www.discogs.com/release/123456 eller 123456"
+          />
+          <small
+            v-if="editForm.discogsId && parseDiscogsId(editForm.discogsId)"
+            style="color: var(--p-green-500); margin-top: 0.25rem; display: block"
+          >
+            <i class="pi pi-check" /> ID: {{ parseDiscogsId(editForm.discogsId) }}
+          </small>
+          <small
+            v-else-if="editForm.discogsId && !parseDiscogsId(editForm.discogsId)"
+            style="color: var(--p-red-400); margin-top: 0.25rem; display: block"
+          >
+            <i class="pi pi-times" /> Ugyldigt format
+          </small>
         </div>
         <label class="edit-signed-toggle">
           <Checkbox v-model="editForm.signed" :binary="true" input-id="signed-cb" />

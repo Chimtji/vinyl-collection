@@ -64,6 +64,13 @@ const navItems: NavItem[] = [
     to: '/collection?view=artists',
     badge: () => new Set(albums.value.map((a) => a.artist)).size,
   },
+  {
+    type: 'link',
+    id: 'credits',
+    label: 'Kreditter',
+    icon: 'pi pi-id-card',
+    to: '/credits',
+  },
   { type: 'section', label: 'Ønskeliste' },
   {
     type: 'link',
@@ -82,6 +89,7 @@ function isActive(item: Extract<NavItem, { type: 'link' }>) {
     return route.path === '/collection' && (!route.query.view || route.query.view === 'genres')
   if (item.id === 'albums') return route.path === '/collection' && route.query.view === 'albums'
   if (item.id === 'artists') return route.path === '/collection' && route.query.view === 'artists'
+  if (item.id === 'credits') return route.path.startsWith('/credits')
   if (item.id === 'collection-share') return false
   if (item.id === 'wishlist') return route.path.startsWith('/wishlist')
   return false

@@ -12,6 +12,7 @@ export interface CollectionAlbum {
   notes?: string
   itunesCollectionId?: number
   trackCount?: number
+  discogsId?: number
   addedAt: string
 }
 

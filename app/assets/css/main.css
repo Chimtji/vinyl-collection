@@ -4011,6 +4011,132 @@ body {
   text-overflow: ellipsis;
 }
 
+/* ── Production Credits ─────────────────────────────────── */
+.album-credits {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+}
+
+.credits-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.credits-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.credits-row:last-child {
+  border-bottom: none;
+}
+
+.credits-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--app-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  min-width: 160px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.credits-value {
+  font-size: 0.9rem;
+  color: var(--app-text);
+  line-height: 1.5;
+}
+
+/* ── Credits Overview Page ──────────────────────────────── */
+.credits-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.credits-stat-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.credits-stat-card-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--app-text-muted);
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.credits-stat-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.credits-stat-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.credits-stat-name {
+  font-size: 0.9rem;
+  color: var(--app-text);
+  flex: 1;
+  min-width: 0;
+}
+
+.credits-stat-count {
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: rgba(196, 85, 41, 0.12);
+  color: #c45529;
+  border-radius: 99px;
+  padding: 0.1rem 0.55rem;
+  flex-shrink: 0;
+}
+
+.dark-mode .credits-stat-count {
+  background: rgba(232, 132, 90, 0.15);
+  color: #e8845a;
+}
+
+.credits-album-list {
+  font-size: 0.78rem;
+  color: var(--app-text-muted);
+  margin-top: 0.1rem;
+  line-height: 1.4;
+}
+
+.credits-loading-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--app-text-muted);
+}
+
 /* ── Responsive ───────────────────────────────────────────── */
 @media (max-width: 900px) {
   .dash-stats-row {
